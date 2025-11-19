@@ -19,6 +19,8 @@ import {
   collection,
   addDoc,
   serverTimestamp,
+  updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../../firebase";
@@ -28,7 +30,6 @@ import "./CartPage.css";
 const RAZORPAY_KEY_ID = "rzp_live_RF5gE7NCdAsEIs";
 
 // 🌐 Alternative Geocoding Service: OpenStreetMap Nominatim
-// Note: This API is free but requires a valid 'email' parameter for policy compliance.
 const NOMINATIM_CONTACT_EMAIL = "your.app.contact@example.com";
 
 // Utility function for debouncing (Performance Improvement)
@@ -96,6 +97,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [productSkus, setProductSkus] = useState({});
+  const [productSellers, setProductSellers] = useState({});
   const [billingDetails, setBillingDetails] = useState({
     fullName: "",
     email: "",
@@ -105,16 +107,18 @@ const CheckoutPage = () => {
     pincode: "",
   });
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
-
-  // State for coordinates
   const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
   const [geocodingError, setGeocodingError] = useState(null);
-  // ✨ NEW: State for location status messages (Success/Warning)
-  const [locationStatusMessage, setLocationStatusMessage] = useState(null); 
-  // State for current location fetching
+  const [locationStatusMessage, setLocationStatusMessage] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
 
-  const fetchProductMainSku = async (productId) => {
+  // 🆕 Enhanced function to get seller ID from multiple possible fields
+  const getSellerIdFromProduct = (productData) => {
+    return productData.sellerId || productData.sellerid || productData.vendorId || productData.vendor_id || productData.sellersid || "default_seller";
+  };
+
+  // Fetch product main SKU AND seller ID - UPDATED with proper field handling
+  const fetchProductMainSkuAndSeller = async (productId) => {
     try {
       const productRef = doc(db, "products", productId);
       const productSnap = await getDoc(productRef);
@@ -122,17 +126,22 @@ const CheckoutPage = () => {
       if (productSnap.exists()) {
         const data = productSnap.data();
         const mainSku = data.sku || data.basesku || productId;
-        return mainSku;
+        
+        // 🆕 Use the enhanced function to get seller ID
+        const sellerId = getSellerIdFromProduct(data);
+        
+        console.log(`Product ${productId} - Seller ID: ${sellerId}`);
+        return { mainSku, sellerId };
       } else {
         return null;
       }
     } catch (error) {
-      console.error("Error fetching product SKU:", error);
+      console.error("Error fetching product SKU and seller:", error);
       return null;
     }
   };
 
-  // Auth check & SKU Fetching
+  // Auth check & SKU Fetching with seller ID
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -144,18 +153,22 @@ const CheckoutPage = () => {
           ...new Set(cartItemsFromRedux.map((item) => item.id)),
         ];
 
-        const fetchAllSkus = async () => {
+        const fetchAllSkusAndSellers = async () => {
           const skuMap = {};
+          const sellerMap = {};
           for (const id of uniqueProductIds) {
-            const sku = await fetchProductMainSku(id);
-            if (sku) {
-              skuMap[id] = sku;
+            const productData = await fetchProductMainSkuAndSeller(id);
+            if (productData) {
+              skuMap[id] = productData.mainSku;
+              sellerMap[id] = productData.sellerId;
             }
           }
           setProductSkus(skuMap);
+          setProductSellers(sellerMap);
+          console.log("Seller IDs fetched:", sellerMap);
         };
 
-        fetchAllSkus();
+        fetchAllSkusAndSellers();
       } else {
         setLoading(false);
         alert("Please log in to continue checkout.");
@@ -173,7 +186,6 @@ const CheckoutPage = () => {
       if (docSnap.exists()) {
         const data = docSnap.data();
 
-        // Fetch existing coordinates if available (fixing the 'lattitude' typo)
         const coords = data.shipping_address?.coordinates;
         if (coords) {
           setCoordinates({ lat: coords.latitude, lng: coords.longitude });
@@ -197,26 +209,20 @@ const CheckoutPage = () => {
     }
   };
 
-  /**
-   * 🌐 Function to geocode the full address string using OpenStreetMap Nominatim API.
-   * @param {object} details - The current billing details state.
-   */
   const geocodeAddress = useCallback(async (details) => {
     const fullAddress = `${details.address}, ${details.city}, ${details.pincode}`;
 
-    // Safety check for incomplete address
     if (fullAddress.trim().length < 10) {
       setGeocodingError("Address is incomplete.");
       setCoordinates({ lat: null, lng: null });
-      setLocationStatusMessage(null); // Clear success message
+      setLocationStatusMessage(null);
       return;
     }
 
     setGeocodingError("Locating address...");
-    setLocationStatusMessage(null); // Clear success message
+    setLocationStatusMessage(null);
 
     try {
-      // Nominatim API call (Public endpoint)
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           fullAddress
@@ -225,19 +231,16 @@ const CheckoutPage = () => {
       const data = await response.json();
 
       if (data.length > 0) {
-        // Nominatim uses 'lon' for longitude, 'lat' for latitude
         const { lat, lon } = data[0];
         setCoordinates({ lat: parseFloat(lat), lng: parseFloat(lon) });
         setGeocodingError(null);
-        setLocationStatusMessage(null); // Clear old status if successful
-        console.log("Nominatim successful:", { lat, lng: lon });
+        setLocationStatusMessage(null);
       } else {
         setCoordinates({ lat: null, lng: null });
         setGeocodingError(
           `Address could not be accurately located. Please check the spelling.`
         );
         setLocationStatusMessage(null);
-        console.error("Geocoding failed: No results found.");
       }
     } catch (error) {
       console.error("Error during Nominatim API call:", error);
@@ -245,28 +248,21 @@ const CheckoutPage = () => {
       setGeocodingError("Failed to connect to geocoding service (Network Error).");
       setLocationStatusMessage(null);
     }
-  }, []); // useCallback dependency array is empty
+  }, []);
 
-  // Debounce the geocoding call
   const debouncedGeocodeAddress = useCallback(
     debounce((details) => {
       geocodeAddress(details);
-    }, 1000), // 1000ms (1 second) debounce time
+    }, 1000),
     [geocodeAddress]
   );
 
-  /**
-   * FIX: Reverse geocodes coordinates to fill in address fields, ensuring street number, street, and area.
-   * @param {number} lat - Latitude
-   * @param {number} lng - Longitude
-   */
   const reverseGeocodeCoordinates = async (lat, lng) => {
     setIsLocating(true);
     setGeocodingError("Reverse geocoding address...");
-    setLocationStatusMessage(null); // Clear previous status/success message
+    setLocationStatusMessage(null);
 
     try {
-      // Nominatim API call for reverse geocoding
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&email=${NOMINATIM_CONTACT_EMAIL}`
       );
@@ -275,65 +271,41 @@ const CheckoutPage = () => {
       if (data.address) {
         const address = data.address;
         
-        // --- 1. Extract Components Safely (Fallback to "" if undefined) ---
-        // House/Door Number (This is what the user is explicitly asking for)
         const doorNumber = address.house_number || address.building || address.office || "";
-
-        // Street/Road Name
         const streetName = address.road || address.pedestrian || address.street || address.residential || "";
-
-        // Area/Locality (Suburb, Neighbourhood, Village, Hamlet) - e.g., "BTM Layout"
         const areaLocality = address.suburb || address.neighbourhood || address.hamlet || address.village || "";
 
-        // --- 2. Build the Address Line in Desired Order (Door, Street, Area) ---
-        
-        // The core components of a physical address
         let addressComponents = [];
         if (doorNumber) addressComponents.push(doorNumber);
         if (streetName) addressComponents.push(streetName);
-        // Include area only if street/door is also present (to avoid just showing "BTM Layout")
         if (streetName && areaLocality) addressComponents.push(areaLocality); 
         
         let cleanedAddress = addressComponents.join(", ");
         
-        // FINAL ROBUST FALLBACK: If the manually built address is too short OR 
-        // if we are missing the street number, use a large slice of the full display name. 
         if (cleanedAddress.length < 10 || (doorNumber === "" && streetName === "")) {
-            // Take the first 5 components of the full display_name string for maximum detail
             const fullDisplayNameParts = data.display_name.split(",").map(p => p.trim()).filter(p => p !== '');
-            // Only take address parts, not city/state/country
             cleanedAddress = fullDisplayNameParts.slice(0, Math.min(5, fullDisplayNameParts.length)).join(", ");
 
-             // If the fallback is still weak, just use the area/locality as a last resort.
             if (cleanedAddress.length < 10 && areaLocality) {
                 cleanedAddress = areaLocality;
             }
         }
 
         const newAddressDetails = {
-          // Use the structured address line. Fallback to country if nothing else is found.
           address: cleanedAddress || address.country || "",
-          
-          // Use common city/town fields with a safe fallback
           city: address.city || address.town || address.county || address.state_district || address.village || "",
-          
-          // Use postcode with a safe fallback
           pincode: address.postcode || "",
         };
 
-        // Update billing state with the new details
         setBillingDetails((prev) => ({
           ...prev,
-          // Only update if the geocoded value is not an empty string
           address: newAddressDetails.address || prev.address,
           city: newAddressDetails.city || prev.city,
           pincode: newAddressDetails.pincode || prev.pincode,
         }));
 
-        // Update coordinates state (Nominatim result coordinates might be slightly different than input)
         setCoordinates({ lat: parseFloat(data.lat), lng: parseFloat(data.lon) });
         setGeocodingError(null);
-        // ✨ NEW: Use state instead of alert
         setLocationStatusMessage("Address pre-filled from current location! Please check and edit the House/Door Number if necessary.");
       } else {
         setCoordinates({ lat: null, lng: null });
@@ -349,9 +321,6 @@ const CheckoutPage = () => {
     }
   };
 
-  /**
-   * Fetches current location using browser Geolocation API.
-   */
   const fetchCurrentLocation = () => {
     if (!("geolocation" in navigator)) {
       setGeocodingError("Geolocation is not supported by your browser.");
@@ -361,7 +330,7 @@ const CheckoutPage = () => {
 
     setIsLocating(true);
     setGeocodingError("Fetching current GPS coordinates...");
-    setLocationStatusMessage(null); // Clear success message at start
+    setLocationStatusMessage(null);
     setCoordinates({ lat: null, lng: null });
 
     navigator.geolocation.getCurrentPosition(
@@ -381,7 +350,7 @@ const CheckoutPage = () => {
           errorMessage = "Timed out while trying to get location.";
         }
         setGeocodingError(errorMessage);
-        setLocationStatusMessage(null); // Clear success message on error
+        setLocationStatusMessage(null);
         console.error("Geolocation error:", error);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -391,7 +360,6 @@ const CheckoutPage = () => {
   const saveBillingDetails = async (details) => {
     if (!userId) return;
 
-    // The final geocoding call before saving
     await geocodeAddress(details);
 
     try {
@@ -407,7 +375,6 @@ const CheckoutPage = () => {
             city: details.city,
             postalCode: details.pincode,
             state: "Karnataka",
-            // Save coordinates
             coordinates:
               coordinates.lat && coordinates.lng
                 ? {
@@ -425,6 +392,13 @@ const CheckoutPage = () => {
     }
   };
 
+  // 🆕 Enhanced function to get seller ID for cart item
+  const getSellerIdForCartItem = (item) => {
+    // Priority: 1. From fetched productSellers, 2. From item.sellerId, 3. From item.sellerid, 4. Default
+    return productSellers[item.id] || item.sellerId || item.sellerid || "default_seller";
+  };
+
+  // Save order to Firestore with seller ID
   const saveOrderToFirestore = async (
     paymentMethod,
     status = "Pending",
@@ -434,19 +408,29 @@ const CheckoutPage = () => {
     try {
       const ordersRef = collection(db, "users", userId, "orders");
       const orderId = `ORD-${Date.now()}`;
+      
+      // 🆕 FIXED: Get all unique seller IDs from the order using the enhanced function
+      const sellerIdsInOrder = [...new Set(mergedCartItems.map(item => 
+        getSellerIdForCartItem(item)
+      ))];
+      
+      console.log("Seller IDs for this order:", sellerIdsInOrder);
+      
       const orderData = {
-       userId,
-               orderId,
-               orderStatus: status,
-               totalAmount: totalPrice,
-               paymentMethod,
-               phoneNumber: billingDetails.phone,
-               createdAt: serverTimestamp(),
-               orderDate: serverTimestamp(),
-               address: `${billingDetails.address} ,${billingDetails.city} ,${billingDetails.pincode} ,${"Karnataka"}`,
-               latitude: coordinates.lat,
-               longitude: coordinates.lng,
-               name: billingDetails.fullName,
+        userId,
+        orderId,
+        orderStatus: status,
+        totalAmount: totalPrice,
+        paymentMethod,
+        phoneNumber: billingDetails.phone,
+        createdAt: serverTimestamp(),
+        orderDate: serverTimestamp(),
+        address: `${billingDetails.address} ,${billingDetails.city} ,${billingDetails.pincode} ,${"Karnataka"}`,
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+        name: billingDetails.fullName,
+        // 🆕 FIXED: Store seller information with consistent field name
+        sellerIds: sellerIdsInOrder,
         products: mergedCartItems.map((item) => {
           const hasVariantData =
             item.stock || item.weight || item.width || item.height;
@@ -462,6 +446,11 @@ const CheckoutPage = () => {
               : undefined;
           const finalSku =
             productSkus[item.id] || (item.sku !== "N/A" ? item.sku : item.id);
+          
+          // 🆕 FIXED: Get seller ID for this product using the enhanced function
+          const sellerId = getSellerIdForCartItem(item);
+
+          console.log(`Product ${item.id} assigned to seller: ${sellerId}`);
 
           return {
             productId: item.id,
@@ -474,6 +463,7 @@ const CheckoutPage = () => {
             color: item.color || null,
             size: item.size || null,
             images: item.images || [],
+            sellerId: sellerId, // Seller ID included with each product
             ...(sizevariants && { sizevariants: sizevariants }),
             totalAmount: item.price * item.quantity,
           };
@@ -481,7 +471,18 @@ const CheckoutPage = () => {
         paymentId,
         shippingCharges: 0,
       };
-      await addDoc(ordersRef, orderData);
+      
+      const orderDocRef = await addDoc(ordersRef, orderData);
+      const orderDocId = orderDocRef.id;
+
+      console.log("Main order saved with ID:", orderDocId);
+      console.log("Order data saved:", orderData);
+
+      // Also save to seller's orders collection
+      await saveOrderToSellerCollections(orderData, orderDocId);
+
+      // Update each seller's document with this order reference
+      await updateSellerDocuments(sellerIdsInOrder, orderDocId, orderData);
 
       alert("Order placed successfully!");
       navigate("/orders");
@@ -491,15 +492,90 @@ const CheckoutPage = () => {
     }
   };
 
+  // Save order to each seller's collection
+  const saveOrderToSellerCollections = async (orderData, orderDocId) => {
+    try {
+      // Group products by seller
+      const productsBySeller = {};
+      orderData.products.forEach(product => {
+        const sellerId = product.sellerId;
+        if (!productsBySeller[sellerId]) {
+          productsBySeller[sellerId] = [];
+        }
+        productsBySeller[sellerId].push(product);
+      });
+
+      console.log("Products grouped by seller:", productsBySeller);
+
+      // Save order to each seller's collection
+      for (const [sellerId, sellerProducts] of Object.entries(productsBySeller)) {
+        const sellerOrderRef = collection(db, "sellers", sellerId, "orders");
+        const sellerSubtotal = sellerProducts.reduce((total, product) => total + product.totalAmount, 0);
+        
+        const sellerOrderData = {
+          ...orderData,
+          orderDocId: orderDocId,
+          products: sellerProducts,
+          sellerSubtotal: sellerSubtotal,
+          sellerId: sellerId,
+          createdAt: serverTimestamp(),
+          orderDate: serverTimestamp(),
+        };
+        
+        // Remove the original document ID to let Firestore generate a new one
+        delete sellerOrderData.id;
+        
+        const sellerOrderDocRef = await addDoc(sellerOrderRef, sellerOrderData);
+        console.log(`Order saved for seller ${sellerId} with ID: ${sellerOrderDocRef.id}`);
+      }
+    } catch (error) {
+      console.error("Error saving order to seller collections:", error);
+    }
+  };
+
+  // Update each seller's main document with order reference
+  const updateSellerDocuments = async (sellerIds, orderDocId, orderData) => {
+    try {
+      for (const sellerId of sellerIds) {
+        const sellerRef = doc(db, "sellers", sellerId);
+        
+        // Get seller's products from this order
+        const sellerProducts = orderData.products.filter(product => product.sellerId === sellerId);
+        const sellerSubtotal = sellerProducts.reduce((total, product) => total + product.totalAmount, 0);
+        
+        const orderSummary = {
+          orderId: orderData.orderId,
+          orderDocId: orderDocId,
+          customerName: orderData.name,
+          customerPhone: orderData.phoneNumber,
+          totalAmount: sellerSubtotal,
+          orderDate: serverTimestamp(),
+          orderStatus: orderData.orderStatus,
+          products: sellerProducts,
+          address: orderData.address,
+        };
+
+        await updateDoc(sellerRef, {
+          orders: arrayUnion(orderSummary),
+          lastOrderDate: serverTimestamp(),
+          totalSales: sellerSubtotal,
+          updatedAt: serverTimestamp(),
+        });
+        
+        console.log(`Updated seller document for: ${sellerId}`);
+      }
+    } catch (error) {
+      console.error("Error updating seller documents:", error);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { id, value } = e.target;
 
-    // Update state first
     const newDetails = { ...billingDetails, [id]: value };
     setBillingDetails(newDetails);
 
     if (id === "address" || id === "pincode" || id === "city") {
-      // Trigger debounced geocoding when address fields are sufficiently populated
       if (
         newDetails.address.length > 5 &&
         newDetails.pincode.length > 5 &&
@@ -507,7 +583,6 @@ const CheckoutPage = () => {
       ) {
         debouncedGeocodeAddress(newDetails);
       } else {
-        // Clear coordinates and error if address is incomplete
         setCoordinates({ lat: null, lng: null });
         setGeocodingError(null);
         setLocationStatusMessage(null);
@@ -539,10 +614,8 @@ const CheckoutPage = () => {
       }
     }
 
-    // Perform geocoding one last time before saving
     await geocodeAddress(billingDetails);
 
-    // Final check for confirmed coordinates
     if (!coordinates.lat || !coordinates.lng) {
       alert(
         "Could not confirm shipping address location. Please check the address details and ensure the address is complete."
@@ -550,24 +623,22 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Save user details with coordinates to Firestore before initiating payment
     await saveBillingDetails(billingDetails);
 
-    // COD Logic
     if (paymentMethod === "cod") {
       navigate("/cod", {
         state: {
           billingDetails,
           cartItems: mergedCartItems,
           productSkus,
+          productSellers,
           totalPrice,
-          coordinates, // Pass coordinates
+          coordinates,
         },
       });
       return;
     }
 
-    // Razorpay Logic (Online Payment)
     const res = await loadRazorpayScript(
       "https://checkout.razorpay.com/v1/checkout.js"
     );
@@ -630,7 +701,6 @@ const CheckoutPage = () => {
   return (
     <Container className="py-5 checkout-container">
       <Row>
-        {/* Billing Information */}
         <Col md={7}>
           <h3 className="fw-bold mb-4 text-warning border-bottom pb-2">
             Billing Information
@@ -674,7 +744,6 @@ const CheckoutPage = () => {
                 />
               </Form.Group>
 
-              {/* Use Current Location Button */}
               <div className="mb-3 d-flex justify-content-end">
                 <Button
                   variant="outline-secondary"
@@ -738,25 +807,22 @@ const CheckoutPage = () => {
                 </Col>
               </Row>
               
-              {/* Geocoding Status/Messages (Replaced pop-up alert) */}
-              {/* {locationStatusMessage ? (
-                  // Success/Informational message after successful reverse geocoding
+              {locationStatusMessage ? (
                   <Alert variant="success" className="mt-2">
                       {locationStatusMessage}
                   </Alert>
               ) : geocodingError ? (
-                  // Error or locating message
                   <Alert 
                       variant={
                           geocodingError.includes("failed") || geocodingError.includes("denied") || geocodingError.includes("Could not get location")
-                              ? "danger" // Fatal errors
-                              : "info" // Locating status
+                              ? "danger"
+                              : "info"
                       } 
                       className="mt-2"
                   >
                       {geocodingError}
                   </Alert>
-              ) : null} */}
+              ) : null}
 
               <Form.Group className="mb-3">
                 <Form.Label>Payment Method *</Form.Label>
@@ -785,7 +851,6 @@ const CheckoutPage = () => {
                 variant="warning"
                 className="w-100 mt-3 py-2 fw-bold shadow-sm"
                 type="submit"
-                // Button is disabled if geocoding has failed (coordinates are null) or is locating
                 disabled={!coordinates.lat || isLocating}
               >
                 🔒 Pay {formatPrice(totalPrice)}
@@ -794,7 +859,6 @@ const CheckoutPage = () => {
           </Card>
         </Col>
 
-        {/* Order Summary with Product Image & Name */}
         <Col md={5} className="mt-4 mt-md-0">
           <h3 className="fw-bold mb-4 text-success border-bottom pb-2">
             Order Summary
@@ -811,6 +875,9 @@ const CheckoutPage = () => {
                   item.img ||
                   "";
 
+                // 🆕 Use the enhanced function to get seller ID for display
+                const sellerId = getSellerIdForCartItem(item);
+
                 return (
                   <div
                     key={item.id + (item.sku || "") + index}
@@ -820,7 +887,6 @@ const CheckoutPage = () => {
                       boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                     }}
                   >
-                    {/* Product Image */}
                     {imageSrc ? (
                       <Image
                         src={imageSrc}
@@ -851,11 +917,16 @@ const CheckoutPage = () => {
                       </div>
                     )}
 
-                    {/* Product Details */}
                     <div className="flex-grow-1">
                       <p className="fw-bold text-dark mb-1">
                         {item.title || item.name || "Unnamed Product"}
                       </p>
+                      
+                      {/* 🆕 Display Seller ID */}
+                      <small className="d-block text-info fw-semibold">
+                        Seller ID: {sellerId}
+                      </small>
+                      
                       {item.color && (
                         <small className="d-block text-muted">
                           Color: {item.color}
@@ -886,7 +957,6 @@ const CheckoutPage = () => {
               </p>
             )}
 
-            {/* Totals Section */}
             {mergedCartItems && mergedCartItems.length > 0 && (
               <div className="mt-3 border-top pt-3">
                 <p className="d-flex justify-content-between mb-2">

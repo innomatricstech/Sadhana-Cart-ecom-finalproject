@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Container, Row, Col, Spinner, Alert, Card, Button, Form, InputGroup, Modal } from "react-bootstrap";
+import { Container, Row, Col, Spinner, Alert, Card, Button, Form, InputGroup, Modal, Badge } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { ToastContainer, toast } from "react-toastify";
@@ -58,6 +58,13 @@ function ProductDetailPage() {
     const [reviewTitle, setReviewTitle] = useState('');
     const [reviewText, setReviewText] = useState('');
 
+    // 🆕 Seller Information State
+    const [sellerInfo, setSellerInfo] = useState({
+        currentProductSeller: null,
+        allSellers: [],
+        loadingSellers: false
+    });
+
     // 🆕 Reset function for product-specific states
     const resetProductStates = useCallback(() => {
         setProduct(null);
@@ -71,6 +78,11 @@ function ProductDetailPage() {
             totalRatings: 0,
             distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
             reviews: []
+        });
+        setSellerInfo({
+            currentProductSeller: null,
+            allSellers: [],
+            loadingSellers: false
         });
     }, []);
 
@@ -148,6 +160,14 @@ function ProductDetailPage() {
             color: '#999',
             cursor: 'not-allowed',
             textDecoration: 'line-through'
+        },
+        sellerBadge: {
+            backgroundColor: '#6c757d',
+            color: 'white',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '0.8rem',
+            fontWeight: '600'
         }
     };
 
@@ -158,6 +178,88 @@ function ProductDetailPage() {
         });
         return () => unsubscribe();
     }, []);
+
+    // 🆕 Function to fetch seller information
+    const fetchSellerInfo = async (productData) => {
+        try {
+            setSellerInfo(prev => ({ ...prev, loadingSellers: true }));
+            
+            // Get current product's seller ID from multiple possible fields
+            const currentSellerId = productData.sellerId || productData.sellerid || productData.vendorId || productData.vendor_id || productData.sellersid;
+            
+            if (currentSellerId) {
+                // Try to fetch seller details from sellers collection
+                try {
+                    const sellerRef = doc(db, "sellers", currentSellerId);
+                    const sellerSnap = await getDoc(sellerRef);
+                    
+                    if (sellerSnap.exists()) {
+                        const sellerData = sellerSnap.data();
+                        setSellerInfo(prev => ({
+                            ...prev,
+                            currentProductSeller: {
+                                id: currentSellerId,
+                                name: sellerData.businessName || sellerData.name || currentSellerId,
+                                email: sellerData.email || 'Not available',
+                                phone: sellerData.phone || 'Not available',
+                                address: sellerData.address || 'Not available',
+                                rating: sellerData.rating || 0,
+                                totalSales: sellerData.totalSales || 0
+                            }
+                        }));
+                    } else {
+                        // If seller document doesn't exist, just store the ID
+                        setSellerInfo(prev => ({
+                            ...prev,
+                            currentProductSeller: {
+                                id: currentSellerId,
+                                name: currentSellerId,
+                                email: 'Not available',
+                                phone: 'Not available',
+                                address: 'Not available',
+                                rating: 0,
+                                totalSales: 0
+                            }
+                        }));
+                    }
+                } catch (sellerError) {
+                    console.error("Error fetching seller details:", sellerError);
+                    // Fallback: just store the ID
+                    setSellerInfo(prev => ({
+                        ...prev,
+                        currentProductSeller: {
+                            id: currentSellerId,
+                            name: currentSellerId,
+                            email: 'Not available',
+                            phone: 'Not available',
+                            address: 'Not available',
+                            rating: 0,
+                            totalSales: 0
+                        }
+                    }));
+                }
+            }
+
+            // Fetch all sellers from the sellers collection
+            try {
+                const sellersQuery = query(collection(db, "sellers"), limit(50));
+                const sellersSnapshot = await getDocs(sellersQuery);
+                const allSellers = sellersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                setSellerInfo(prev => ({ ...prev, allSellers }));
+            } catch (sellersError) {
+                console.error("Error fetching all sellers:", sellersError);
+            }
+            
+        } catch (error) {
+            console.error("Error in fetchSellerInfo:", error);
+        } finally {
+            setSellerInfo(prev => ({ ...prev, loadingSellers: false }));
+        }
+    };
 
     const fetchReviews = async (productId) => {
         const reviewsQuery = query(collection(db, "rating"), where("productId", "==", productId));
@@ -206,6 +308,10 @@ function ProductDetailPage() {
 
                 const data = { id: productSnap.id, ...productSnap.data() };
                 setProduct(data);
+                
+                // 🆕 Fetch seller information after getting product data
+                await fetchSellerInfo(data);
+                
                 await fetchReviews(id);
                 const fetchedVariants = Array.isArray(data.sizevariants) ? data.sizevariants : [];
                 setProductVariants(fetchedVariants);
@@ -382,6 +488,7 @@ function ProductDetailPage() {
                 quantity: quantity,
                 size: itemSize,
                 variant: itemVariant,
+                sellerId: sellerInfo.currentProductSeller?.id || product.sellerId || "default_seller" // 🆕 Include seller ID in cart
             })
         );
 
@@ -430,7 +537,8 @@ function ProductDetailPage() {
             title: productTitle,
             size: checkoutSize,
             price: Number(calculatedPriceINR),
-            variant: checkoutVariant
+            variant: checkoutVariant,
+            sellerId: sellerInfo.currentProductSeller?.id || product.sellerId || "default_seller" // 🆕 Include seller ID for checkout
         };
 
         if (isLoggedIn) {
@@ -567,6 +675,9 @@ function ProductDetailPage() {
                     <Col md={7}>
                         <h2 className="fw-bold">{product.name || product.title}</h2>
                         <p className="text-primary fw-semibold text-uppercase">{product.category}</p>
+                        
+                        {/* 🆕 Enhanced Seller Information Display */}
+                        
                         <div className="product-rating mb-3">
                             <span className="text-warning fw-bold me-2">
                                 {rating.rate.toFixed(1)} <i className="fas fa-star small"></i>
@@ -668,6 +779,8 @@ function ProductDetailPage() {
                 </Row>
             </Card>
 
+            {/* 🆕 Seller Details Section */}
+
             {/* Similar Products */}
             <h3 className="mb-4 fw-bold">More from the {product.category} category</h3>
 
@@ -712,6 +825,15 @@ function ProductDetailPage() {
                                             </span>
                                             <span className="text-muted small">({p.rating.count})</span>
                                         </div>
+                                        {/* 🆕 Display seller info for similar products */}
+                                        {p.sellerId && (
+                                            <div className="mb-2">
+                                                <small className="text-muted">Seller: </small>
+                                                <Badge bg="light" text="dark" className="ms-1 small">
+                                                    {p.sellerId}
+                                                </Badge>
+                                            </div>
+                                        )}
                                         <Card.Text className="fw-bold text-danger fs-5 mt-auto">₹{p.priceINR}</Card.Text>
                                         <Button
                                             variant="warning"
@@ -719,7 +841,14 @@ function ProductDetailPage() {
                                             className="mt-2"
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                dispatch(addToCart({ id: p.id, title: p.name || p.title, price: p.priceValue, image: p.images || p.image, quantity: 1 }));
+                                                dispatch(addToCart({ 
+                                                    id: p.id, 
+                                                    title: p.name || p.title, 
+                                                    price: p.priceValue, 
+                                                    image: p.images || p.image, 
+                                                    quantity: 1,
+                                                    sellerId: p.sellerId || "default_seller" // 🆕 Include seller ID
+                                                }));
                                                 toast.success(`Added "${p.name || p.title}" to cart!`, { position: "top-right", autoClose: 2000 });
                                             }}
                                         >

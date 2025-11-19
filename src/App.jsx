@@ -103,7 +103,7 @@ const AppContent = () => {
                     <Route path="/faqs" element={<Faqs />} />
 
                     {/* 🎯 New Contact Page Route */}
-                    <Route path="/contact" element={<ContactForm />} />   {/* 👈 இதுதான் முக்கியம் */}
+                    <Route path="/contact" element={<ContactForm />} /> 
 
                     {/* 🔹 404 Fallback */}
                     <Route

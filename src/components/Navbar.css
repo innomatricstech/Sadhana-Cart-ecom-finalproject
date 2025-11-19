@@ -8,6 +8,7 @@
     --text-grey: #666666;
     --text-white: #ffffff;
 }
+
 /* -------------------- BASE STYLES -------------------- */
 body {
     font-family: "Poppins", Arial, sans-serif;
@@ -15,15 +16,6 @@ body {
     padding: 0;
     color: var(--text-dark);
 }
-.top-bar-custom {
-    background-color: #f0f0f0;
-    color: #666;
-    font-size: 0.8rem;
-    padding: 3px 15px;
-    text-align: right;
-    border-bottom: 1px solid #e0e0e0;
-}
-
 
 /* -------------------- NAVBAR -------------------- */
 .navbar-custom {
@@ -47,126 +39,18 @@ body {
     color: var(--text-dark) !important;
 }
 
-.nav-link-custom,
-.account-button,
-.cart-button {
-    color: var(--text-grey) !important;
-    font-size: 0.9rem;
-    padding: 5px 10px !important;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    transition: all 0.2s;
-    background: none !important;
+/* -------------------- SEARCH BAR ANIMATIONS -------------------- */
+.search-input-desktop {
+    transition: all 0.3s ease !important;
 }
 
-/* Hover effect on links/icons */
-.nav-link-custom:hover,
-.account-button:hover,
-.cart-button:hover {
-    color: var(--shopclues-dark-red) !important;
-    border-color: #f0f0f0 !important;
-    background-color: #f9f9f9 !important;
-}
-
-.location {
-    font-size: 0.85rem;
-    line-height: 1.2;
-    padding: 5px 8px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    color: var(--text-dark);
-}
-
-.location:hover {
-    border-color: #e0e0e0;
-}
-.cart-button {
-    text-decoration: none;
-}
-
-.cart-count {
-    background-color: var(--shopclues-dark-red);
-    color: var(--text-white);
-    font-size: 0.7rem;
-    padding: 1px 5px;
-    border-radius: 50%;
-    margin-left: 5px;
-    font-weight: bold;
-    min-width: 18px;
-    text-align: center;
-    position: relative;
-    top: -8px;
-    right: -8px;
-}
-
-.cart-button .cart-count {
-    position: static;
-    top: 0;
-    right: 0;
-}
-
-/* -------------------- SEARCH BAR (DESKTOP) -------------------- */
-.search-bar-container {
-    position: relative;
-    max-width: 700px;
-    flex-grow: 1;
-    margin: 0 15px;
-}
-
-.search-form {
-    display: flex;
-    width: 100%;
-}
-
-.search-input {
-    border-radius: 4px 0 0 4px;
-    border: 1px solid #ccc;
-    height: 40px;
-    font-size: 1rem;
-    background-color: #f5f5f5;
-    color: var(--text-dark);
-    padding-left: 15px;
-    flex-grow: 1;
-    border-right: none;
-}
-
-.search-input:focus {
-    border-color: var(--shopclues-red-orange);
-    box-shadow: 0 0 0 1px var(--shopclues-red-orange);
-    z-index: 100;
-    border-right: none;
-    background-color: var(--text-white);
-}
-
-.search-btn {
-    background-color: var(--shopclues-red-orange);
-    border-radius: 0 4px 4px 0;
-    border: 1px solid var(--shopclues-red-orange);
-    color: var(--text-white);
-    padding: 0 20px;
-    height: 40px;
-    font-size: 1rem;
-    font-weight: bold;
-    min-width: 100px;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-
-.search-btn:hover {
-    background-color: var(--shopclues-dark-red);
-    border-color: var(--shopclues-dark-red);
-    color: var(--text-white);
+.search-input-desktop:focus {
+    border-color: var(--shopclues-red-orange) !important;
+    box-shadow: 0 0 0 2px rgba(255, 110, 64, 0.2) !important;
+    transform: scale(1.02);
 }
 
 /* -------------------- SEARCH SUGGESTIONS DROP DOWN -------------------- */
-
 .suggestions-dropdown {
     position: absolute;
     width: 100%;
@@ -186,205 +70,202 @@ body {
     color: var(--text-dark);
     padding: 10px 15px;
     border-bottom: 1px solid #eee;
-    transition: background-color 0.1s;
+    transition: all 0.2s ease;
     font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    position: relative;
 }
 
 .suggestion-item:hover,
 .suggestion-item:focus {
     background-color: #fff8e8;
     font-weight: 500;
+    padding-left: 20px;
 }
 
-.location-modal .modal-content {
-    background: var(--shopclues-main-bg);
-    color: var(--text-dark);
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+/* Seller Link Animations */
+.seller-link {
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    color: #2c5530;
 }
-.location-modal .form-control {
-    background-color: #f5f5f5;
-    color: #000;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+
+.seller-link:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
 }
-.location-modal .btn-warning {
-    background-color: var(--shopclues-red-orange);
-    border-color: var(--shopclues-red-orange);
-    color: var(--text-white);
+
+.seller-link i {
+    color: #28a745;
+    transition: all 0.3s ease;
+}
+
+.seller-link .small {
+    color: #2c5530;
     font-weight: 600;
+    transition: all 0.3s ease;
 }
-.location-modal .btn-warning:hover {
+
+/* Cart Count Animation */
+.cart-count, .cart-count-mobile {
     background-color: var(--shopclues-dark-red);
-    border-color: var(--shopclues-dark-red);
+    color: var(--text-white);
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    border-radius: 50%;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
-/* -------------------- SECOND HEADER (Sticky Logic) -------------------- */
-
-.second-header-custom {
-    background-color: var(--shopclues-teal-light);
-    color: var(--text-white);
-    padding: 10px 0;
-    position: sticky;
-    top: 0;
+/* Floating Cart Icon (Optional) */
+.floating-cart-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--shopclues-red-orange);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
     z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(255, 110, 64, 0.4);
+}
+
+.floating-cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--shopclues-dark-red);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+/* Enhanced Modal Animations */
+.login-success-modal .modal-content,
+.logout-success-modal .modal-content {
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.login-success-modal .fa-check-circle,
+.logout-success-modal .fa-sign-out-alt {
+    font-size: 4.5rem !important;
+    border-radius: 50%;
+    padding: 0.5rem;
+}
+
+/* Bounce animation for success icons */
+@keyframes bounce-in {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Pulse animation for cart */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.cart-count.pulse {
+    animation: pulse 0.5s ease-in-out;
+}
+
+/* Search bar glow effect */
+.search-bar-glow {
+    animation: searchGlow 2s infinite;
+}
+
+@keyframes searchGlow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(255, 110, 64, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 110, 64, 0.8);
+    }
 }
 
 /* -------------------- RESPONSIVE (MOBILE) -------------------- */
 @media (max-width: 992px) {
-
     .navbar-custom .container-fluid {
         flex-wrap: wrap;
         align-items: flex-start;
     }
+    
     .search-bar-container-mobile {
         max-width: 100%;
         order: 3;
         margin: 5px 0 !important;
     }
 
-    .search-bar-container-mobile .search-btn {
-        min-width: 40px;
-        padding: 0 10px;
-    }
-
-    .search-bar-container-mobile .search-btn span {
-        display: none;
-    }
-
-    .search-bar-container-mobile .fa-search {
-        display: block !important;
-    }
-    .account-button-mobile,
-    .cart-button-mobile {
-        padding: 8px 10px !important;
-        font-size: 1.1rem;
-        border: none !important;
-        background-color: transparent !important;
-        color: var(--text-dark) !important;
-    }
-
-    .cart-button-mobile {
-        position: relative;
-    }
-    .cart-count-mobile {
-        background-color: var(--shopclues-dark-red);
-        color: var(--text-white);
-        font-size: 0.7rem;
-        padding: 1px 5px;
-        border-radius: 50%;
-        font-weight: bold;
-        min-width: 18px;
-        text-align: center;
-        position: absolute;
-        top: -3px;
-        right: 0px;
-    }
-
-    .account-button-mobile:hover,
-    .cart-button-mobile:hover {
-        background-color: #f0f0f0 !important;
-    }
-    .navbar-toggler {
-        display: none;
-    }
-    .location {
-        display: none !important;
-    }
-
-    .search-bar-container {
+    .seller-link {
         display: none !important;
     }
 }
 
-.login-success-modal .modal-dialog {
-    max-width: 400px;
+/* Hover effects for all buttons */
+.account-button, .cart-button, .account-button-mobile, .cart-button-mobile {
+    transition: all 0.3s ease !important;
 }
 
-.login-success-modal .modal-content {
-    border: none;
-    border-radius: 1rem;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+.account-button:hover, .cart-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.login-success-modal .modal-body {
-    padding: 2.5rem 1.5rem;
-    position: relative;
-    background: linear-gradient(145deg, #f0fff0, #ffffff);
+/* Smooth transitions for all interactive elements */
+.nav-link-custom, .location, .search-input, .suggestion-item {
+    transition: all 0.3s ease;
 }
 
-.login-success-modal .text-success {
-    color: #28a745 !important;
-}
-
-.login-success-modal .fa-check-circle {
-    font-size: 4.5rem !important;
-    background: #e9f7eb;
-    border-radius: 50%;
-    padding: 0.5rem;
-    animation: success-bounce 0.8s ease-out;
-}
-
-.login-success-modal .text-primary {
-    color: #007bff !important;
-}
-
-@keyframes success-bounce {
+/* Loading animation for search */
+@keyframes searchLoading {
     0% {
-        transform: scale(0.5);
-        opacity: 0;
+        background-position: -200px 0;
     }
-
-    50% {
-        transform: scale(1.1);
-        opacity: 1;
-    }
-
     100% {
-        transform: scale(1);
+        background-position: calc(200px + 100%) 0;
     }
 }
 
-
-/* --- Logout Success Modal Styles (Red/Warning) --- */
-
-.logout-success-modal .modal-dialog {
-    max-width: 400px;
-}
-
-.logout-success-modal .modal-content {
-    border: none;
-    border-radius: 1rem;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    background-color: #ffffff;
-}
-
-.logout-success-modal .modal-body {
-    padding: 2.5rem 1.5rem;
-    position: relative;
-    background: linear-gradient(145deg, #f8d7da, #ffffff);
-}
-
-.logout-success-modal .text-danger {
-    color: #dc3545 !important;
-}
-
-.logout-success-modal .fa-sign-out-alt {
-    font-size: 4.5rem !important;
-    background: #f5c6cb;
-    border-radius: 50%;
-    padding: 0.5rem;
-    transform-origin: center;
-}
-
-.logout-success-modal h4 {
-    font-size: 1.5rem;
-    margin-top: 1rem;
-    color: #dc3545;
+.search-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: searchLoading 1.5s infinite;
 }

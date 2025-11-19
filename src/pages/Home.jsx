@@ -10,6 +10,7 @@ import HomeAccessoriesSection from "../components/category/HomeAccessoriesSectio
 import HomeToysSection from "../components/category/HomeToysSection";
 import HomeStationarySection from "../components/category/HomeStationarySection";
 import HomePhotoFrameSection from "../components/category/HomePhotoFrameSection";
+import HomeFootWearsSection from "../components/category/HomeFootWearsSection";
 import HomeJewellerySection from "../components/category/HomeJewellerySection";
 import HomeMensSection from "../components/category/HomeMensSection";
 import HomeKidsSection from "../components/category/HomeKidsSection";
@@ -18,8 +19,8 @@ import HomePersonalCareSection from "../components/category/HomePersonalCareSect
 // Full Components
 import Cosmetics from "../components/category/Cosmetics";
 import Book from "../components/category/Book";
-import Footwears from "../components/category/Footwears";
 import Electronics from "../components/category/Electronics";
+
 
 function Home() {
   return (
@@ -82,7 +83,7 @@ function Home() {
       {/* ===== Footwears ===== */}
       <section className="category-section mb-5">
         <Container>
-          <Footwears />
+          <HomeFootWearsSection />
         </Container>
       </section>
 

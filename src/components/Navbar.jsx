@@ -19,7 +19,6 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 const auth = getAuth();
 
 /**
- * Fetches product suggestions from Firestore based on the search text.
  * @param {string} searchText - The text entered by the user.
  * @returns {Promise<Array<{id: string, name: string}>>} A list of matching product suggestions.
  */
@@ -223,6 +222,11 @@ export default function Header() {
         }
     };
 
+    // 🔄 UPDATED: Seller Button Handler for external URL
+    const handleSellerClick = () => {
+        window.location.href = "https://sadhana-cart-seller-panel.vercel.app/seller/login";
+    };
+
     const openAuthModal = () => setShowAuthModal(true);
     const closeAuthModal = () => setShowAuthModal(false);
 
@@ -247,8 +251,6 @@ export default function Header() {
         // You should define the route for your orders page here
         navigate("/orders"); 
     };
-
-    // [ ... Search suggestion logic remains here ... ]
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (search.trim().length > 1) {
@@ -268,14 +270,14 @@ export default function Header() {
         setShowSuggestions(false);
         navigate(`/product/${product.id}`);
     };
-
-    // 🌟 CORE FUNCTION TO HANDLE SEARCH BUTTON CLICK / FORM SUBMISSION
     const handleSearchSubmit = () => {
+        // Check if the search input is NOT empty or only contains whitespace
         if (search.trim()) {
             setShowSuggestions(false);
             // This is the correct navigation to the search results page
             navigate(`/search-results?q=${encodeURIComponent(search.trim())}`);
         }
+        // If search is empty, do nothing, preventing navigation to a blank search
     };
 
     const handleKeyPress = (e) => {
@@ -327,7 +329,19 @@ export default function Header() {
                     {/* 2. RIGHT SIDE ICONS (Mobile) */}
                     <div className="d-flex d-lg-none align-items-center ms-auto">
                         
-                        {/* Mobile: My Orders Icon (NEW ADDITION) */}
+                        {/* Mobile: Seller Icon */}
+                        <motion.div 
+                            whileTap={{ scale: 0.95 }} 
+                            className="me-2"
+                            onClick={handleSellerClick} // UPDATED
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <Button variant="outline-dark" className="account-button-mobile" title="Seller">
+                                <i className="fas fa-store"></i>
+                            </Button>
+                        </motion.div>
+
+                        {/* Mobile: My Orders Icon */}
                         <motion.div 
                             whileTap={{ scale: 0.95 }} 
                             className="me-2"
@@ -417,7 +431,7 @@ export default function Header() {
                                             {product.name}
                                         </li>
                                     ))}
-                                </ul>
+                                </ul >
                             </motion.div>
                         )}
                     </motion.div>
@@ -427,34 +441,33 @@ export default function Header() {
                         <Nav className="mx-auto align-items-center flex-grow-1">
                             <motion.div
                                 ref={searchBarRef}
-                                className="search-bar-container my-2 my-lg-0 position-relative w-100"
+                                className="search-bar-container my-2 my-lg-0 position-relative"
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ duration: 0.4, delay: 0.2 }}
-                                style={{ transformOrigin: 'center' }}
+                                style={{ transformOrigin: 'center', maxWidth: '500px', width: '100%' }}
                             >
-                                
-                                    <Form
-                                        className="d-flex align-items-center justify-content-center gap-2"
-                                        onSubmit={(e) => {
-                                            e.preventDefault();
-                                            handleSearchSubmit();
+                                <Form
+                                    className="d-flex align-items-center justify-content-center gap-2"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        handleSearchSubmit();
+                                    }}
+                                >
+                                    <Form.Control
+                                        type="search"
+                                        placeholder="What is on your mind today?"
+                                        className="form-control rounded-pill shadow-sm"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onFocus={() => {
+                                            if (suggestions.length > 0 && search.trim().length > 1)
+                                                setShowSuggestions(true);
                                         }}
-                                    >
-                                        <Form.Control
-                                            type="search"
-                                            placeholder="What is on your mind today?"
-                                            className="form-control rounded-pill shadow-sm"
-                                            value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                            onFocus={() => {
-                                                if (suggestions.length > 0 && search.trim().length > 1)
-                                                    setShowSuggestions(true);
-                                            }}
-                                            onKeyDown={handleKeyPress}
-                                        />
-                                        
-                                    </Form>
+                                        onKeyDown={handleKeyPress}
+                                    />
+                                    
+                                </Form>
 
                                 {/* Search Suggestions Dropdown */}
                                 {showSuggestions && suggestions.length > 0 && (
@@ -485,8 +498,21 @@ export default function Header() {
                         {/* Right Side Icons/Links - Desktop */}
                         <Nav className="align-items-center ms-lg-3">
                             
-                            
-                            {/* 🚀 My Orders Link - NOW IN DESKTOP AND COLLAPSED MENU */}
+                            {/* 🚀 Seller Link - DESKTOP (UPDATED) */}
+                            <motion.div
+                                className="seller-link me-3 d-flex flex-column align-items-center justify-content-center text-center"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleSellerClick} // UPDATED
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <i className="fas fa-store fa-lg mb-1"></i>
+                                <span className="small fw-semibold" style={{ whiteSpace: 'nowrap' }}>
+                                    Seller
+                                </span>
+                            </motion.div>
+
+                            {/* 🚀 My Orders Link */}
                             <motion.div
                                 className="orders-link me-3 d-flex flex-column align-items-center justify-content-center text-center"
                                 whileHover={{ scale: 1.05 }}
@@ -494,7 +520,6 @@ export default function Header() {
                                 onClick={goToOrders} 
                                 style={{ cursor: 'pointer' }}
                             >
-                                {/* Changed icon for 'My Orders' */}
                                 <i className="fas fa-box-open fa-lg mb-1"></i> 
                                 <span className="small fw-semibold" style={{ whiteSpace: 'nowrap' }}>
                                     My Orders
