@@ -320,9 +320,9 @@ export default function Header() {
                             href="/"
                             className="shopclues-logo d-flex align-items-center"
                         >
-                            <img src="./Sadhanacart1.png" alt="" style={{width:"25px"}} />
-                            <span className="brand-text">Sadhana
-                                <span style={{ color: "orangered" }}>Cart</span></span>
+                            <img src="./Sadhanacart1.png" alt="" style={{width:"60px"}} />
+                            <span className="brand-text" style={{color: "goldenrod"}}>Sadhana
+                                <span style={{ color: "navy" }}>Cart</span></span>
                         </Navbar.Brand>
                     </motion.div>
                     
