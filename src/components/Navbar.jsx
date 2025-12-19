@@ -10,7 +10,7 @@ import { setLocation } from "../redux/store";
 import AuthPage from "../pages/LoginPage";
 import SecondHeader from "./searchBar/SecondHeader";
 import "./Navbar.css";
-import logo from "../assets/Sadhanacart1.png";
+import logo from "client/src/assets/Sadhanacart1.png";
 
 // Firebase imports for search and auth
 import { db } from "../firebase";
