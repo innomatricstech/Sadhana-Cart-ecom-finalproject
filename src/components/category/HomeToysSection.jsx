@@ -14,26 +14,33 @@ import { Link } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
-// 🎨 STYLE CONSTANTS
-const PRIMARY_TEXT_COLOR = "#101010";
-const ACCENT_COLOR = "#198754";
-const SALE_COLOR = "#dc3545";
+// 🎨 UPDATED STYLE CONSTANTS (Playful Blue Theme)
+const PRIMARY_TEXT_COLOR = "#0D3B66"; // Deep Navy Blue
+const ACCENT_COLOR = "#0077B6";      // Bright Sky Blue
+const SALE_COLOR = "#FF4D6D";        // Playful Pink/Red for Sale
 const WHITE_COLOR = "#FFFFFF";
+const LIGHT_BLUE_BG = "#E0F2F1";
 
-// 🎨 CUSTOM STYLES
+// 🎨 CUSTOM STYLES & ANIMATIONS
 const customStyles = {
+  mainWrapper: {
+    background: "linear-gradient(180deg, #F0F9FF 0%, #B9E6FF 100%)",
+    padding: "60px 0",
+  },
   sectionContainer: {
-    backgroundColor: WHITE_COLOR,
-    borderRadius: "25px",
-    padding: "3rem 1rem",
-    boxShadow: "0 15px 50px rgba(0, 0, 0, 0.08)",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backdropFilter: "blur(12px)",
+    borderRadius: "35px",
+    padding: "3.5rem 1.5rem",
+    boxShadow: "0 20px 50px rgba(0, 119, 182, 0.1)",
+    border: "2px solid #FFFFFF",
   },
   productCard: {
-    border: "1px solid #e9ecef",
-    borderRadius: "15px",
+    border: "none",
+    borderRadius: "25px",
     overflow: "hidden",
-    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.05)",
+    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
     backgroundColor: WHITE_COLOR,
     cursor: "pointer",
     height: "100%",
@@ -46,162 +53,108 @@ const customStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#F0F8FF",
+    padding: "15px",
   }),
   productImage: {
     maxWidth: "100%",
     maxHeight: "100%",
     objectFit: "contain",
-    transition: "transform 0.3s ease-in-out",
-    padding: "3px",
+    transition: "transform 0.5s ease",
   },
   discountBadge: {
     position: "absolute",
-    top: "8px",
-    right: "8px",
+    top: "12px",
+    left: "12px",
     backgroundColor: SALE_COLOR,
     color: WHITE_COLOR,
-    padding: "0.2rem 0.5rem",
-    borderRadius: "50px",
-    fontSize: "0.75rem",
-    fontWeight: "900",
+    padding: "0.5rem 0.8rem",
+    borderRadius: "15px",
+    fontSize: "0.8rem",
+    fontWeight: "800",
     zIndex: 10,
-    boxShadow: "0 2px 5px rgba(220, 53, 69, 0.3)",
-    letterSpacing: "0.5px",
+    boxShadow: "0 4px 10px rgba(255, 77, 109, 0.3)",
+    transform: "rotate(-5deg)",
   },
   brandText: {
-    fontSize: "0.75rem",
-    fontWeight: "600",
+    fontSize: "0.7rem",
+    fontWeight: "800",
     color: ACCENT_COLOR,
-    marginBottom: "1px",
-    letterSpacing: "0.5px",
+    marginBottom: "4px",
+    letterSpacing: "1px",
+    textTransform: "uppercase",
   },
   title: {
-    fontSize: "1rem",
+    fontSize: "1.1rem",
     fontWeight: "700",
     color: PRIMARY_TEXT_COLOR,
-    marginBottom: "4px",
+    marginBottom: "8px",
   },
   price: {
-    fontSize: "1.4rem",
-    fontWeight: "900",
-    color: SALE_COLOR,
-    letterSpacing: "-0.5px",
-  },
-  originalPrice: { fontSize: "0.8rem", color: "#adb5bd" },
-  header: {
-    fontSize: "2.5rem",
+    fontSize: "1.5rem",
     fontWeight: "900",
     color: PRIMARY_TEXT_COLOR,
-    letterSpacing: "-1.5px",
-    display: "inline-block",
-    position: "relative",
-    paddingBottom: "12px",
   },
-  headerUnderline: {
-    content: '""',
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100px",
-    height: "3px",
-    backgroundColor: ACCENT_COLOR,
-    borderRadius: "2px",
+  header: {
+    fontSize: "clamp(2rem, 5vw, 3rem)",
+    fontWeight: "900",
+    color: PRIMARY_TEXT_COLOR,
+    letterSpacing: "-1px",
+    animation: "floatHeader 3s ease-in-out infinite",
   },
   viewDealButton: {
     transition: "all 0.3s ease",
-    borderRadius: "6px",
+    borderRadius: "14px",
     fontSize: "0.9rem",
     fontWeight: "700",
     backgroundColor: ACCENT_COLOR,
     borderColor: ACCENT_COLOR,
-    padding: "0.4rem 0.8rem",
-  },
-  viewDealButtonHover: {
-    backgroundColor: SALE_COLOR,
-    borderColor: SALE_COLOR,
-    transform: "translateY(-2px)",
-    boxShadow: `0 5px 15px ${SALE_COLOR}80`,
+    padding: "0.7rem",
+    marginTop: "10px",
   },
   exploreButton: {
     backgroundColor: PRIMARY_TEXT_COLOR,
     color: "white",
-    borderColor: PRIMARY_TEXT_COLOR,
-    transition: "all 0.3s ease-in-out",
+    border: "none",
     borderRadius: "50px",
     fontSize: "1.1rem",
-    padding: "0.6rem 3rem",
-    boxShadow: `0 8px 25px ${PRIMARY_TEXT_COLOR}40`,
-  },
-  exploreButtonHover: {
-    backgroundColor: ACCENT_COLOR,
-    borderColor: ACCENT_COLOR,
-    transform: "scale(1.03)",
-    boxShadow: `0 5px 15px ${ACCENT_COLOR}60`,
+    padding: "0.8rem 3.5rem",
+    boxShadow: "0 10px 20px rgba(13, 59, 102, 0.2)",
+    transition: "transform 0.3s ease",
   },
 };
 
-// Hover effects
-const handleCardMouseEnter = (e) => {
-  e.currentTarget.style.transform = "translateY(-8px)";
-  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
-  e.currentTarget.querySelector("img").style.transform = "scale(1.03)";
-};
-const handleCardMouseLeave = (e) => {
-  e.currentTarget.style.transform = "translateY(0)";
-  e.currentTarget.style.boxShadow = customStyles.productCard.boxShadow;
-  e.currentTarget.querySelector("img").style.transform = "scale(1)";
-};
-const handleViewDealMouseEnter = (e) =>
-  Object.assign(e.currentTarget.style, customStyles.viewDealButtonHover);
-const handleViewDealMouseLeave = (e) =>
-  Object.assign(e.currentTarget.style, {
-    ...customStyles.viewDealButton,
-    transform: "none",
-    boxShadow: "none",
-  });
-const handleExploreMouseEnter = (e) =>
-  Object.assign(e.currentTarget.style, customStyles.exploreButtonHover);
-const handleExploreMouseLeave = (e) =>
-  Object.assign(e.currentTarget.style, {
-    ...customStyles.exploreButton,
-    transform: "none",
-    boxShadow: customStyles.exploreButton.boxShadow,
-  });
+// Injecting Keyframe Animations
+const AnimationGlobalStyles = () => (
+  <style>{`
+    @keyframes floatHeader {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .toy-card:hover {
+      transform: translateY(-15px) rotate(1deg) !important;
+      box-shadow: 0 30px 60px rgba(0, 119, 182, 0.2) !important;
+    }
+    .toy-card:hover img {
+      transform: scale(1.15) rotate(-2deg);
+    }
+    .btn-bounce:hover {
+      transform: scale(1.05);
+    }
+  `}</style>
+);
 
-// Helpers
-const getProductImageSource = (product) => {
-  if (typeof product.image === "string" && product.image.trim() !== "")
-    return product.image;
-  if (Array.isArray(product.images) && product.images.length > 0)
-    return product.images[0];
-  return "https://placehold.co/300x380/e0e0e0/555?text=NO+IMAGE";
-};
-const calculateDiscount = (price, originalPrice) => {
-  if (originalPrice > price)
-    return Math.round(((originalPrice - price) / originalPrice) * 100);
-  return 0;
-};
-const generateDummyProduct = (index) => {
-  const basePrice = Math.floor(Math.random() * 800) + 1500;
-  const discountFactor = Math.random() * 0.5 + 0.3;
-  const finalPrice = Math.floor(basePrice * discountFactor);
-  const originalPrice =
-    basePrice <= finalPrice
-      ? finalPrice + Math.floor(Math.random() * 500) + 500
-      : basePrice;
-  return {
-    id: `toy-dummy-${index}`,
-    name: `Fun Toy ${index + 1}`,
-    brand: "KIDS FAVORITE",
-    price: finalPrice,
-    originalPrice,
-    image: `https://picsum.photos/seed/toy${index}/300/300`,
-  };
-};
+const calculateDiscount = (p, op) => (op > p ? Math.round(((op - p) / op) * 100) : 0);
 
-// 🧩 MAIN COMPONENT
+const generateDummyProduct = (index) => ({
+  id: `toy-blue-${index}`,
+  name: `Adventure Set ${index + 1}`,
+  brand: "SKY PLAY",
+  price: 1299,
+  originalPrice: 1999,
+  image: `https://picsum.photos/seed/toyblue${index}/300/300`,
+});
+
 function HomeToysSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -210,157 +163,73 @@ function HomeToysSection() {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 576);
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
     const fetchToys = async () => {
-      setLoading(true);
       try {
-        // 🧠 LocalStorage cache check
-        const cached = localStorage.getItem("toyProducts");
-        if (cached) {
-          setProducts(JSON.parse(cached));
-          setLoading(false);
-          return;
-        }
-
-        const categoryName = "Toys";
-        const productLimit = 4;
-        const productsRef = collection(db, "products");
-        const q = query(productsRef, where("category", "==", categoryName));
+        const q = query(collection(db, "products"), where("category", "==", "Toys"));
         const snapshot = await getDocs(q);
-
-        let data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          price: doc.data().price ? Number(doc.data().price) : 499,
-          originalPrice: doc.data().originalPrice
-            ? Number(doc.data().originalPrice)
-            : 999,
-        }));
-
-        // Ensure at least 4
-        while (data.length < productLimit)
-          data.push(generateDummyProduct(data.length));
-
-        // Shuffle
-        for (let i = data.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [data[i], data[j]] = [data[j], data[i]];
-        }
-
-        data = data.slice(0, productLimit);
-        setProducts(data);
-        localStorage.setItem("toyProducts", JSON.stringify(data)); // Cache
+        let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        while (data.length < 4) data.push(generateDummyProduct(data.length));
+        setProducts(data.slice(0, 4));
       } catch (err) {
-        console.warn("Firebase fetch failed, using dummy toys:", err);
-        setProducts(
-          Array.from({ length: 4 }, (_, i) => generateDummyProduct(i))
-        );
+        setProducts(Array.from({ length: 4 }, (_, i) => generateDummyProduct(i)));
       } finally {
         setLoading(false);
       }
     };
     fetchToys();
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
-    <Container fluid style={{ backgroundColor: "#f8f9fa" }}>
-      <Container className="py-4" style={customStyles.sectionContainer}>
-        {/* Header */}
-        <div className="text-center mb-3 mb-md-4">
+    <div style={customStyles.mainWrapper}>
+      <AnimationGlobalStyles />
+      <Container style={customStyles.sectionContainer}>
+        {/* Playful Header */}
+        <div className="text-center mb-5">
           <h3 style={customStyles.header}>
-            FUN & PLAY <span style={{ color: ACCENT_COLOR }}>ON SALE</span>
-            <div style={customStyles.headerUnderline}></div>
+            TOYS & <span style={{ color: ACCENT_COLOR }}>GAMES</span>
           </h3>
-          <p className="text-muted mt-2 fs-6 fw-light d-none d-sm-block">
-            Discover exciting toys your kids will love — fun meets learning!
-          </p>
+          <p className="text-muted mt-2">Unlock a world of imagination and endless fun!</p>
         </div>
 
         {loading ? (
-          <div className="text-center py-4">
-            <Spinner animation="border" variant="success" />
-            <p className="mt-2 text-muted fs-6">Loading trending toys...</p>
-          </div>
+          <div className="text-center py-5"><Spinner animation="border" style={{ color: ACCENT_COLOR }} /></div>
         ) : (
           <>
-            <Row
-              xs={2}
-              sm={2}
-              md={3}
-              lg={4}
-              className="g-2 g-md-3 justify-content-center"
-            >
+            <Row xs={2} sm={2} md={3} lg={4} className="g-3 g-md-4">
               {products.map((product) => {
-                const discountPercent = calculateDiscount(
-                  product.price,
-                  product.originalPrice
-                );
+                const discount = calculateDiscount(product.price, product.originalPrice);
                 return (
                   <Col key={product.id}>
-                    <Link
-                      to={`/product/${product.id}`}
-                      className="text-decoration-none d-block"
-                    >
-                      <Card
-                        className="h-100 product-card"
-                        style={customStyles.productCard}
-                        onMouseEnter={handleCardMouseEnter}
-                        onMouseLeave={handleCardMouseLeave}
-                      >
-                        {discountPercent > 0 && (
-                          <Badge style={customStyles.discountBadge}>
-                            -{discountPercent}% OFF
-                          </Badge>
+                    <Link to={`/product/${product.id}`} className="text-decoration-none h-100 d-block">
+                      <Card style={customStyles.productCard} className="toy-card">
+                        {discount > 0 && (
+                          <Badge style={customStyles.discountBadge}>-{discount}%</Badge>
                         )}
                         <div style={customStyles.imageContainer(isMobile)}>
                           <LazyLoadImage
-                            src={getProductImageSource(product)}
+                            src={product.image || product.images?.[0] || "https://placehold.co/300?text=Toy"}
                             alt={product.name}
                             effect="blur"
                             style={customStyles.productImage}
-                            onError={(e) =>
-                              (e.target.src =
-                                "https://placehold.co/300x380/e0e0e0/555?text=Image+Error")
-                            }
                           />
                         </div>
-                        <Card.Body className="text-start p-2 p-md-3 d-flex flex-column">
-                          <p
-                            style={customStyles.brandText}
-                            className="text-uppercase"
-                          >
-                            {product.brand}
-                          </p>
-                          <Card.Title
-                            style={customStyles.title}
-                            className="text-truncate"
-                          >
-                            {product.name}
-                          </Card.Title>
-                          <div className="d-flex align-items-baseline justify-content-between mt-auto pt-1 pt-md-2">
-                            <Card.Text style={customStyles.price}>
-                              ₹{product.price}
-                            </Card.Text>
+                        <Card.Body className="p-3">
+                          <p style={customStyles.brandText}>{product.brand || "KIDS ZONE"}</p>
+                          <Card.Title style={customStyles.title} className="text-truncate">{product.name}</Card.Title>
+                          <div className="d-flex align-items-center mb-2">
+                            <span style={customStyles.price}>₹{product.price}</span>
                             {product.originalPrice > product.price && (
-                              <small
-                                style={customStyles.originalPrice}
-                                className="text-decoration-line-through"
-                              >
-                                ₹{product.originalPrice}
-                              </small>
+                              <small className="ms-2 text-muted text-decoration-line-through">₹{product.originalPrice}</small>
                             )}
                           </div>
-                          <Button
-                            variant="success"
+                          <Button 
+                            className="w-100 border-0" 
                             style={customStyles.viewDealButton}
-                            className="w-100 mt-2 text-uppercase"
-                            onMouseEnter={handleViewDealMouseEnter}
-                            onMouseLeave={handleViewDealMouseLeave}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = PRIMARY_TEXT_COLOR}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = ACCENT_COLOR}
                           >
-                            View Deal
+                             SHOP NOW
                           </Button>
                         </Card.Body>
                       </Card>
@@ -370,23 +239,17 @@ function HomeToysSection() {
               })}
             </Row>
 
-            <div className="text-center mt-4 pt-3">
+            <div className="text-center mt-5">
               <Link to="/toys">
-                <Button
-                  style={customStyles.exploreButton}
-                  size="md"
-                  className="fw-bold"
-                  onMouseEnter={handleExploreMouseEnter}
-                  onMouseLeave={handleExploreMouseLeave}
-                >
-                  Explore All Toys →
+                <Button style={customStyles.exploreButton} className="btn-bounce">
+                  See All Adventures →
                 </Button>
               </Link>
             </div>
           </>
         )}
       </Container>
-    </Container>
+    </div>
   );
 }
 

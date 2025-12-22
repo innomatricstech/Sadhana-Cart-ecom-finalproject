@@ -2,636 +2,631 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { Navbar, Nav, Container, Button, Modal, Form } from "react-bootstrap";
+import { Navbar, Nav, Container, Button, Modal, Form, Badge } from "react-bootstrap";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { motion } from "framer-motion";
-// Redux actions
-import { setLocation } from "../redux/store";
+// Redux & Components
 import AuthPage from "../pages/LoginPage";
 import SecondHeader from "./searchBar/SecondHeader";
+
 import "./Navbar.css";
 import logo from "../Images/Sadhanacart1.png";
 
-
-// Firebase imports for search and auth
+// Firebase
 import { db } from "../firebase";
-import { collection, query, getDocs } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, where } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const auth = getAuth();
 
-/**
- * @param {string} searchText - The text entered by the user.
- * @returns {Promise<Array<{id: string, name: string}>>} A list of matching product suggestions.
- */
-const fetchSuggestions = async (searchText) => {
-    // Placeholder implementation for brevity
-    if (!searchText || searchText.trim().length < 2) return [];
-
-    const lowerCaseSearch = searchText.trim().toLowerCase();
-    const productsRef = collection(db, "products");
-    const q = query(productsRef);
-
-    try {
-        const snapshot = await getDocs(q);
-        let suggestionsMap = new Map();
-
-        snapshot.docs.forEach(doc => {
-            const productData = doc.data();
-            const productName = productData.name;
-            if (!productName) return;
-
-            if (productName.toLowerCase().includes(lowerCaseSearch)) {
-                suggestionsMap.set(productName, doc.id);
-            }
-        });
-
-        return Array.from(suggestionsMap).map(([name, id]) => ({
-            id: id,
-            name: name
-        }));
-
-    } catch (error) {
-        console.error("Error fetching search suggestions:", error);
-        return [];
-    }
-};
-
+/* ---------------- MODALS ---------------- */
 const LoginConfirmationModal = ({ show, onClose, userName }) => {
-    if (!show) return null;
-
-    return (
-        <Modal
-            show={show}
-            onHide={onClose}
-            centered
-            dialogClassName="modal-90w"
-            className="login-success-modal" // Custom CSS target
-        >
-            <motion.div
-                initial={{ opacity: 0, scale: 0.7, y: -50 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.3, type: "spring", damping: 15, stiffness: 300 }}
-            >
-                <Modal.Body className="p-4 text-center py-5">
-
-                    <motion.div
-                        initial={{ scale: 0.5 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.5, type: "spring" }}
-                        className="text-success mb-4"
-                    >
-                        <i className="fas fa-check-circle"></i>
-                    </motion.div>
-
-                    <h4 className="mb-2 fw-bolder text-dark">
-                        Welcome Back!
-                    </h4>
-
-                    <p className="text-muted mt-3 mb-0">
-                        Hello,
-                        <span className="fw-bold text-primary mx-1">
-                            {userName}
-                        </span>!
-                        You are now signed in.
-                    </p>
-
-                </Modal.Body>
-            </motion.div>
-        </Modal>
-    );
+  return (
+    <Modal show={show} onHide={onClose} centered className="login-success-modal">
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.3, type: "spring", damping: 15 }}
+          >
+            <Modal.Body className="p-4 text-center py-5">
+              <motion.div
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                className="text-success mb-4"
+              >
+                <i className="fas fa-check-circle fa-3x"></i>
+              </motion.div>
+              <h4 className="mb-2 fw-bolder text-dark">Welcome Back!</h4>
+              <p className="text-muted mt-3 mb-0">
+                Hello, <span className="fw-bold text-primary">{userName}</span>!
+                You are now signed in.
+              </p>
+            </Modal.Body>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
 };
 
 const LogoutConfirmationModal = ({ show, onClose }) => {
-    if (!show) return null;
-
-    return (
-        <Modal
-            show={show}
-            onHide={onClose}
-            centered
-            dialogClassName="modal-90w"
-            className="logout-success-modal"
-        >
-            <motion.div
-                initial={{ opacity: 0, scale: 0.7, y: -50 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.3, type: "spring", damping: 15, stiffness: 300 }}
-            >
-                <Modal.Body className="p-4 text-center py-5">
-                    <motion.div
-                        initial={{ rotate: -180, scale: 0.5 }}
-                        animate={{ rotate: 0, scale: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="text-danger mb-4"
-                    >
-                        <i className="fas fa-sign-out-alt"></i>
-                    </motion.div>
-
-                    <h4 className="mb-2 fw-bold text-danger">
-                        Logout Successful!
-                    </h4>
-                    <p className="text-muted mt-3 mb-0">
-                        You've been securely logged out. Redirecting now...
-                    </p>
-                </Modal.Body>
-            </motion.div>
-        </Modal>
-    );
+  return (
+    <Modal show={show} onHide={onClose} centered className="logout-success-modal">
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.3, type: "spring", damping: 15 }}
+          >
+            <Modal.Body className="p-4 text-center py-5">
+              <motion.div
+                initial={{ rotate: -180, scale: 0.5 }}
+                animate={{ rotate: 0, scale: 1 }}
+                className="text-danger mb-4"
+              >
+                <i className="fas fa-sign-out-alt fa-3x"></i>
+              </motion.div>
+              <h4 className="mb-2 fw-bold text-danger">Logout Successful!</h4>
+              <p className="text-muted mt-3 mb-0">You've been securely logged out.</p>
+            </Modal.Body>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
 };
 
+/* ---------------- SEARCH BAR COMPONENT ---------------- */
+const SearchBar = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
-export default function Header() {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const searchBarRef = useRef(null);
-
-    // ⭐ location state is read here
-    const { location } = useSelector((state) => state.header);
-    const cartItems = useSelector((state) => state.cart?.items || []);
-    
-    // ✅ Use .length to count unique items instead of .reduce to sum quantities.
-    const cartCount = cartItems.length;
-
-    const [showAuthModal, setShowAuthModal] = useState(false);
-    const [showLocationModal, setShowLocationModal] = useState(false);
-    const [newLocation, setNewLocation] = useState(location || "");
-    const [search, setSearch] = useState("");
-
-    const [suggestions, setSuggestions] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-
-    const [currentUser, setCurrentUser] = useState(null);
-
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    // Logout success modal
-    const [showLogoutModal, setShowLogoutModal] = useState(false);
-
-    // State to hold the user's name for the login modal
-    const [loggedInUserName, setLoggedInUserName] = useState('');
-
-
-    // Auth State Listener
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-        });
-        return () => unsubscribe();
-    }, []);
-
-    // ⭐ Sync the local modal input state when Redux location changes (important for UX)
-    useEffect(() => {
-        setNewLocation(location || "");
-    }, [location]);
-
-    // KEY FUNCTION: Handle successful login from AuthPage
-    const handleLoginSuccess = (user) => {
-        // Close the sign-in modal
-        closeAuthModal();
-
-        // Determine the name to display (uses display name or email prefix)
-        const nameToDisplay = user.displayName || user.email.split('@')[0];
-        setLoggedInUserName(nameToDisplay);
-
-        // Show the GREEN animated login success modal
-        setShowLoginModal(true);
-
-        // Hide the modal after a short delay
-        setTimeout(() => {
-            setShowLoginModal(false);
-        }, 2000);
-    };
-
-
-    // Logout Handler 
-    const handleLogout = async () => {
-        try {
-            await signOut(auth);
-            setShowAuthModal(false);
-
-            // Show the RED logout success modal
-            setShowLogoutModal(true);
-
-            // Navigate after a short delay
-            setTimeout(() => {
-                setShowLogoutModal(false);
-                navigate("/");
-            }, 2000);
-
-        } catch (error) {
-            console.error("Logout Error:", error);
-            alert("Failed to log out. Please try again.");
-        }
-    };
-
-    // 🔄 UPDATED: Seller Button Handler for external URL
-    const handleSellerClick = () => {
-        window.location.href = "https://sadhana-cart-seller-panel.vercel.app/seller/login";
-    };
-
-    const openAuthModal = () => setShowAuthModal(true);
-    const closeAuthModal = () => setShowAuthModal(false);
-
-    const openLocationModal = () => {
-        setNewLocation(location || ""); // Reset modal input to current Redux location on open
-        setShowLocationModal(true);
-    };
-    const closeLocationModal = () => setShowLocationModal(false);
-
-    const saveLocation = () => {
-        if (newLocation.trim() !== "") {
-            // ⭐ Dispatch action to save the location to Redux
-            dispatch(setLocation(newLocation));
-            closeLocationModal();
-        }
-    };
-
-    const goToCart = () => navigate("/cart");
-
-    // 🚀 NEW FUNCTION: Navigate to the orders page
-    const goToOrders = () => {
-        // You should define the route for your orders page here
-        navigate("/orders"); 
-    };
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(async () => {
-            if (search.trim().length > 1) {
-                const fetchedSuggestions = await fetchSuggestions(search.trim());
-                setSuggestions(fetchedSuggestions);
-                setShowSuggestions(true);
-            } else {
-                setSuggestions([]);
-                setShowSuggestions(false);
-            }
-        }, 300);
-        return () => clearTimeout(delayDebounceFn);
-    }, [search]);
-
-    const handleSuggestionClick = (product) => {
-        setSearch(product.name);
-        setShowSuggestions(false);
-        navigate(`/product/${product.id}`);
-    };
-    const handleSearchSubmit = () => {
-        // Check if the search input is NOT empty or only contains whitespace
-        if (search.trim()) {
-            setShowSuggestions(false);
-            // This is the correct navigation to the search results page
-            navigate(`/search-results?q=${encodeURIComponent(search.trim())}`);
-        }
-        // If search is empty, do nothing, preventing navigation to a blank search
-    };
-
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleSearchSubmit();
-        }
-    };
-
-    // Hide suggestions on outside click
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (searchBarRef.current && !searchBarRef.current.contains(event.target)) {
-                setShowSuggestions(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-
-    return (
-        <>
-            <Navbar
-                expand="lg"
-                className="navbar-custom shadow-sm sticky-top"
-                variant="light"
-            >
-                <Container fluid className="px-3 d-flex flex-wrap">
-                    {/* 1. BRAND/LOGO */}
-                    <motion.div
-                        className="d-flex align-items-center brand-container me-auto"
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <Navbar.Brand
-                            href="/"
-                            className="shopclues-logo d-flex align-items-center"
-                        >
-                            <img src= {logo} alt="" style={{width:"60px"}} />
-                            <span className="brand-text" style={{color: "goldenrod"}}>Sadhana
-                                <span style={{ color: "navy" }}>Cart</span></span>
-                        </Navbar.Brand>
-                    </motion.div>
-                    
-                    {/* 2. RIGHT SIDE ICONS (Mobile) */}
-                    <div className="d-flex d-lg-none align-items-center ms-auto">
-                        
-                        {/* Mobile: Seller Icon */}
-                        <motion.div 
-                            whileTap={{ scale: 0.95 }} 
-                            className="me-2"
-                            onClick={handleSellerClick} // UPDATED
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <Button variant="outline-dark" className="account-button-mobile" title="Seller">
-                                <i className="fas fa-store"></i>
-                            </Button>
-                        </motion.div>
-
-                        {/* Mobile: My Orders Icon */}
-                        <motion.div 
-                            whileTap={{ scale: 0.95 }} 
-                            className="me-2"
-                            onClick={goToOrders} 
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <Button variant="outline-dark" className="account-button-mobile" title="My Orders">
-                                <i className="fas fa-box-open"></i>
-                            </Button>
-                        </motion.div>
-
-
-                        {/* Mobile: Account/Sign In Icon */}
-                        {currentUser ? (
-                            <motion.div whileTap={{ scale: 0.95 }} className="me-2">
-                                <Button variant="outline-dark" className="account-button-mobile" onClick={handleLogout} title="Logout">
-                                    <i className="fas fa-sign-out-alt"></i>
-                                </Button>
-                            </motion.div>
-                        ) : (
-                            <motion.div whileTap={{ scale: 0.95 }} className="me-2">
-                                <Button variant="outline-dark" className="account-button-mobile" onClick={openAuthModal}>
-                                    <i className="fas fa-user"></i>
-                                </Button>
-                            </motion.div>
-                        )}
-                        {/* Mobile: Cart Icon */}
-                        <motion.div whileTap={{ scale: 0.95 }}>
-                            <Button variant="warning" className="cart-button-mobile" onClick={goToCart}>
-                                <i className="fas fa-shopping-cart"></i>
-                                {/* UPDATED: Mobile Cart Count */}
-                                <span className="cart-count-mobile">{cartCount}</span> 
-                            </Button>
-                        </motion.div>
-                    </div>
-
-                    {/* 3. MOBILE SEARCH BAR */}
-                    <motion.div
-                        ref={searchBarRef}
-                        className="search-bar-container-mobile d-lg-none my-2 position-relative w-100"
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.4, delay: 0.1 }}
-                        style={{ transformOrigin: 'center' }}
-                    >
-                        <Form
-                            className="d-flex search-form"
-                            // 🌟 Search is triggered here when submitting the form (e.g., pressing enter)
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleSearchSubmit();
-                            }}
-                        >
-                            <Form.Control
-                                type="search"
-                                placeholder="What is on your mind today?"
-                                className="search-input"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onFocus={() => {
-                                    if (suggestions.length > 0 && search.trim().length > 1) setShowSuggestions(true);
-                                }}
-                                onKeyDown={handleKeyPress}
-                            />
-                            <motion.div whileTap={{ scale: 0.95 }}>
-                                
-                            </motion.div>
-                        </Form>
-
-                        {/* Search Suggestions Dropdown */}
-                        {showSuggestions && suggestions.length > 0 && (
-                            <motion.div
-                                className="suggestions-dropdown p-0 bg-white shadow rounded-bottom border border-top-0"
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.15 }}
-                            >
-                                <ul className="list-unstyled mb-0">
-                                    {suggestions.map((product) => (
-                                        <li
-                                            key={product.id}
-                                            className="suggestion-item"
-                                            onClick={() => handleSuggestionClick(product)}
-                                            tabIndex={0}
-                                        >
-                                            {product.name}
-                                        </li>
-                                    ))}
-                                </ul >
-                            </motion.div>
-                        )}
-                    </motion.div>
-                    
-                    {/* 4. DESKTOP NAVIGATION/ICONS */}
-                    <Navbar.Collapse id="responsive-navbar-nav" className="d-none d-lg-flex flex-grow-1">
-                        <Nav className="mx-auto align-items-center flex-grow-1">
-                            <motion.div
-                                ref={searchBarRef}
-                                className="search-bar-container my-2 my-lg-0 position-relative"
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.4, delay: 0.2 }}
-                                style={{ transformOrigin: 'center', maxWidth: '500px', width: '100%' }}
-                            >
-                                <Form
-                                    className="d-flex align-items-center justify-content-center gap-2"
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        handleSearchSubmit();
-                                    }}
-                                >
-                                    <Form.Control
-                                        type="search"
-                                        placeholder="What is on your mind today?"
-                                        className="form-control rounded-pill shadow-sm"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        onFocus={() => {
-                                            if (suggestions.length > 0 && search.trim().length > 1)
-                                                setShowSuggestions(true);
-                                        }}
-                                        onKeyDown={handleKeyPress}
-                                    />
-                                    
-                                </Form>
-
-                                {/* Search Suggestions Dropdown */}
-                                {showSuggestions && suggestions.length > 0 && (
-                                    <motion.div
-                                        className="suggestions-dropdown p-0 bg-white shadow rounded-bottom border border-top-0"
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.15 }}
-                                    >
-                                        <ul className="list-unstyled mb-0">
-                                            {suggestions.map((product) => (
-                                                <li
-                                                    key={product.id}
-                                                    className="suggestion-item"
-                                                    onClick={() => handleSuggestionClick(product)}
-                                                    tabIndex={0}
-                                                >
-                                                    {product.name}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </motion.div>
-                                )}
-                            </motion.div>
-                        </Nav>
-
-                        {/* Right Side Icons/Links - Desktop */}
-                        <Nav className="align-items-center ms-lg-3">
-                            
-                            {/* 🚀 Seller Link - DESKTOP (UPDATED) */}
-                            <motion.div
-                                className="seller-link me-3 d-flex flex-column align-items-center justify-content-center text-center"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleSellerClick} // UPDATED
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <i className="fas fa-store fa-lg mb-1"></i>
-                                <span className="small fw-semibold" style={{ whiteSpace: 'nowrap' }}>
-                                    Seller
-                                </span>
-                            </motion.div>
-
-                            {/* 🚀 My Orders Link */}
-                            <motion.div
-                                className="orders-link me-3 d-flex flex-column align-items-center justify-content-center text-center"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={goToOrders} 
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <i className="fas fa-box-open fa-lg mb-1"></i> 
-                                <span className="small fw-semibold" style={{ whiteSpace: 'nowrap' }}>
-                                    My Orders
-                                </span>
-                            </motion.div>
-
-
-                            {/* CONDITIONAL USER DISPLAY */}
-                            {currentUser ? (
-                                // LOGGED IN (Desktop View)
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="me-2 d-flex align-items-center">
-                                    <div className="text-end me-3" style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-                                        <div className="fw-bold text-dark">
-                                            Hi, {currentUser.displayName || currentUser.email.split('@')[0]} 👋
-                                        </div>
-                                        <small className="text-muted" style={{ display: 'block' }}>
-                                            {currentUser.email}
-                                        </small>
-                                    </div>
-                                    <Button variant="outline-dark" className="account-button" onClick={handleLogout} title="Logout">
-                                        <i className="fas fa-sign-out-alt"></i>
-                                        <span className="ms-1">Logout</span>
-                                    </Button>
-                                </motion.div>
-                            ) : (
-                                // LOGGED OUT (Desktop View)
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="me-2">
-                                    <Button variant="outline-dark" className="account-button" onClick={openAuthModal}>
-                                        <i className="fas fa-user me-1"></i>
-                                        <span>Sign In</span>
-                                    </Button>
-                                </motion.div>
-                            )}
-
-                            {/* Cart (Desktop View) */}
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button variant="warning" className="cart-button" onClick={goToCart}>
-                                    <i className="fas fa-shopping-cart"></i>
-                                    <span>Cart </span>
-                                    {/* UPDATED: Desktop Cart Count */}
-                                    <span className="cart-count">{cartCount}</span> 
-                                </Button>
-                            </motion.div>
-                        </Nav>
-                    </Navbar.Collapse>
-                </Container>
-            </Navbar>
-
-            {/* SECOND HEADER */}
-            <SecondHeader />
-
-            {/* Auth Modal - Pass the success handler */}
-            <Modal show={showAuthModal} onHide={closeAuthModal} centered>
-                <Modal.Body>
-                    <AuthPage
-                        onClose={closeAuthModal}
-                        onLoginSuccess={handleLoginSuccess} // KEY PROP
-                    />
-                </Modal.Body>
-            </Modal>
-
-            {/* Location Modal */}
-            <Modal
-                show={showLocationModal}
-                onHide={closeLocationModal}
-                centered
-                backdrop="static"
-                className="location-modal"
-            >
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: -20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                >
-                    <Modal.Header closeButton>
-                        <Modal.Title>Set Delivery Location 📍</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form>
-                            <Form.Group>
-                                <Form.Label>Enter your location:</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Eg: Chennai, Tamil Nadu"
-                                    value={newLocation}
-                                    onChange={(e) => setNewLocation(e.target.value)}
-                                />
-                            </Form.Group>
-                        </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={closeLocationModal}>
-                            Cancel
-                        </Button>
-                        <Button variant="warning" onClick={saveLocation}>
-                            Save Location
-                        </Button>
-                    </Modal.Footer>
-                </motion.div>
-            </Modal>
-            <LoginConfirmationModal
-                show={showLoginModal}
-                onClose={() => setShowLoginModal(false)}
-                userName={loggedInUserName}
-            />
-            <LogoutConfirmationModal
-                show={showLogoutModal}
-                onClose={() => setShowLogoutModal(false)}
-            />
-        </>
+  const highlightText = (text, query) => {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.split(regex).map((part, i) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <mark key={i} className="search-highlight">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
     );
+  };
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const q = query(
+          collection(db, "products"),
+          orderBy("createdAt", "desc"),
+          limit(5)
+        );
+        const snap = await getDocs(q);
+        const data = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setTrending(data);
+      } catch (err) {
+        console.error("Trending fetch error:", err);
+      }
+    };
+
+    fetchTrending();
+    const stored = JSON.parse(localStorage.getItem("recentSearches")) || [];
+    setRecentSearches(stored);
+  }, []);
+
+  const fetchSearchData = async (value) => {
+    if (!value.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    setLoading(true);
+    const keyword = value.toLowerCase();
+
+    try {
+      const productsRef = collection(db, "products");
+      const q = query(
+        productsRef,
+        where("searchkeywords", "array-contains", keyword),
+        limit(6)
+      );
+
+      const snap = await getDocs(q);
+      let results = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      if (results.length === 0) {
+        const allSnap = await getDocs(query(productsRef, limit(20)));
+        results = allSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(p =>
+            p.pattern?.toLowerCase().includes(keyword) ||
+            p.name?.toLowerCase().includes(keyword)
+          );
+      }
+
+      setSuggestions(results);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (searchTerm) fetchSearchData(searchTerm);
+    }, 300);
+    return () => clearTimeout(delay);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const saveRecentSearch = (term) => {
+    let updated = [term, ...recentSearches.filter(t => t !== term)];
+    updated = updated.slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem("recentSearches", JSON.stringify(updated));
+  };
+
+  const handleSelect = (product) => {
+    const term = product.pattern || product.name || "";
+    saveRecentSearch(term);
+    setSearchTerm(term);
+    setShowDropdown(false);
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleSubmit = () => {
+    if (!searchTerm.trim()) return;
+    saveRecentSearch(searchTerm);
+    setShowDropdown(false);
+    navigate(`/search-results?q=${encodeURIComponent(searchTerm)}`);
+  };
+
+  return (
+    <div className="position-relative w-100" ref={dropdownRef}>
+      <div className="input-group">
+        <input
+          type="text"
+          className="form-control search-input-desktop border-end-0 rounded-start-pill"
+          placeholder="What are you looking for?"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setShowDropdown(true)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        />
+        <Button 
+          variant="warning" 
+          className="rounded-end-pill px-4"
+          onClick={handleSubmit}
+        >
+          <i className="fas fa-search"></i>
+        </Button>
+      </div>
+
+      {showDropdown && (
+        <motion.div 
+          className="suggestions-dropdown shadow-lg border-0 rounded-3 mt-1"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+        >
+          {loading ? (
+            <div className="p-3 text-center">
+              <div className="spinner-border spinner-border-sm text-warning"></div>
+              <span className="ms-2">Searching...</span>
+            </div>
+          ) : searchTerm.length > 0 ? (
+            suggestions.length > 0 ? (
+              suggestions.map((p) => (
+                <div
+                  key={p.id}
+                  className="suggestion-item p-3 border-bottom"
+                  onClick={() => handleSelect(p)}
+                >
+                  <div className="d-flex align-items-center gap-3">
+                    <img
+                      src={p.image || p.thumbnail || p.images?.[0]}
+                      alt={p.pattern || p.name}
+                      className="search-suggestion-img"
+                      onError={(e) => e.target.src = "https://via.placeholder.com/40"}
+                    />
+                    <div className="flex-grow-1">
+                      <div className="fw-bold text-dark">
+                        {highlightText(p.pattern || p.name, searchTerm)}
+                      </div>
+                      <div className="small text-muted">
+                        {p.category} • {p.subcategory || ""}
+                      </div>
+                      <div className="d-flex align-items-center gap-2 mt-1">
+                        <span className="text-success fw-bold">
+                          ₹{p.offerprice || p.price || "N/A"}
+                        </span>
+                        {p.mrp && p.offerprice && (
+                          <Badge bg="danger" className="ms-2">
+                            {Math.round(((p.mrp - p.offerprice) / p.mrp) * 100)}% OFF
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-3 text-center text-muted">
+                No products found for "{searchTerm}"
+              </div>
+            )
+          ) : (
+            <>
+              {recentSearches.length > 0 && (
+                <>
+                  <div className="px-3 py-2 text-muted small fw-bold bg-light">
+                    <i className="fas fa-history me-2"></i> RECENT SEARCHES
+                  </div>
+                  {recentSearches.map((term, i) => (
+                    <div
+                      key={i}
+                      className="suggestion-item px-3 py-2"
+                      onClick={() => {
+                        setSearchTerm(term);
+                        fetchSearchData(term);
+                      }}
+                    >
+                      <i className="fas fa-clock me-2 text-muted"></i> {term}
+                    </div>
+                  ))}
+                </>
+              )}
+              
+              <div className="px-3 py-2 text-muted small fw-bold bg-light">
+                <i className="fas fa-fire me-2 text-warning"></i> TRENDING NOW
+              </div>
+              {trending.map((p) => (
+                <div
+                  key={p.id}
+                  className="suggestion-item px-3 py-2"
+                  onClick={() => handleSelect(p)}
+                >
+                  <i className="fas fa-chart-line me-2 text-primary"></i>
+                  {p.pattern || p.name}
+                </div>
+              ))}
+            </>
+          )}
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+/* ---------------- MAIN HEADER COMPONENT ---------------- */
+export default function Header() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Redux State
+  const { location } = useSelector((state) => state.header);
+  const cartItems = useSelector((state) => state.cart?.items || []);
+  const orders = useSelector((state) => state.orders?.items || []);
+  
+  const cartCount = cartItems.length;
+  const orderCount = orders.length;
+
+  // Local State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggedInUserName, setLoggedInUserName] = useState("");
+  const [mobileSearchActive, setMobileSearchActive] = useState(false);
+
+  // Auth State Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  /* ---------------- HANDLERS ---------------- */
+  const handleLoginSuccess = (user) => {
+    setShowAuthModal(false);
+    const nameToDisplay = user.displayName || user.email.split('@')[0];
+    setLoggedInUserName(nameToDisplay);
+    setShowLoginModal(true);
+    setTimeout(() => setShowLoginModal(false), 2000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setShowLogoutModal(true);
+      setTimeout(() => {
+        setShowLogoutModal(false);
+        navigate("/");
+      }, 2000);
+    } catch (error) {
+      console.error("Logout Error:", error);
+      alert("Failed to log out. Please try again.");
+    }
+  };
+
+  const handleSellerClick = () => {
+    window.open("https://sadhana-cart-seller-panel.vercel.app/seller/login", "_blank");
+  };
+
+  const goToCart = () => navigate("/cart");
+  const goToOrders = () => navigate("/orders");
+
+  return (
+    <>
+      {/* =================== MAIN NAVBAR =================== */}
+      <Navbar expand="lg" className="navbar-custom shadow-sm sticky-top bg-white" variant="light">
+        <Container fluid className="px-3 px-lg-4">
+          
+          {/* MOBILE VIEW */}
+          {!mobileSearchActive && (
+            <>
+              {/* LOGO */}
+              <Navbar.Brand href="/" className="d-flex align-items-center me-auto">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="d-flex align-items-center"
+                >
+                  <img 
+                    src={logo} 
+                    alt="Sadhana Cart" 
+                    className="logo-img"
+                    style={{ width: "50px", height: "50px", objectFit: "contain" }}
+                  />
+                  <div className="ms-2">
+                    <div className="brand-text" style={{ 
+                      color: "goldenrod", 
+                      fontWeight: "800", 
+                      fontSize: "1.4rem",
+                      lineHeight: "1.1"
+                    }}>
+                      Sadhana<span style={{ color: "navy" }}>Cart</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </Navbar.Brand>
+
+              {/* MOBILE ACTIONS */}
+              <div className="d-flex d-lg-none align-items-center gap-2">
+                {/* Search Toggle */}
+                <Button 
+                  variant="outline-dark" 
+                  size="sm" 
+                  className="border-0"
+                  onClick={() => setMobileSearchActive(true)}
+                >
+                  <i className="fas fa-search"></i>
+                </Button>
+
+
+                {/* Orders with Badge */}
+                <Button 
+                  variant="outline-dark" 
+                  size="sm" 
+                  className="border-0 position-relative"
+                  onClick={goToOrders}
+                >
+                  <i className="fas fa-box"></i>
+                  {orderCount > 0 && (
+                    <Badge 
+                      bg="info" 
+                      className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                      style={{ fontSize: "0.6rem", padding: "0.2rem 0.4rem" }}
+                    >
+                      {orderCount}
+                    </Badge>
+                  )}
+                </Button>
+
+                {/* Cart with Badge */}
+                <Button 
+                  variant="warning" 
+                  size="sm" 
+                  className="position-relative rounded-pill px-3"
+                  onClick={goToCart}
+                >
+                  <i className="fas fa-shopping-cart"></i>
+                  {cartCount > 0 && (
+                    <Badge 
+                      bg="danger" 
+                      className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                      style={{ fontSize: "0.6rem", padding: "0.2rem 0.4rem" }}
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* MOBILE SEARCH VIEW */}
+          {mobileSearchActive && (
+            <div className="d-flex d-lg-none align-items-center w-100">
+              <Button 
+                variant="link" 
+                className="me-2 text-dark"
+                onClick={() => setMobileSearchActive(false)}
+              >
+                <i className="fas fa-arrow-left"></i>
+              </Button>
+              <SearchBar />
+            </div>
+          )}
+
+          {/* DESKTOP VIEW */}
+          <Navbar.Collapse id="navbar-collapse" className="d-none d-lg-flex">
+
+            {/* Search Bar */}
+            <Nav className="flex-grow-1 mx-4" style={{ maxWidth: "600px" }}>
+              <SearchBar />
+            </Nav>
+
+            {/* Right Actions */}
+            <Nav className="align-items-center gap-4">
+              {/* Seller */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="d-flex flex-column align-items-center cursor-pointer"
+                onClick={handleSellerClick}
+              >
+                <i className="fas fa-store text-primary mb-1"></i>
+                <small className="text-dark fw-semibold">Seller</small>
+              </motion.div>
+
+              {/* Orders with Badge */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="d-flex flex-column align-items-center cursor-pointer position-relative"
+                onClick={goToOrders}
+              >
+                <i className="fas fa-box text-success mb-1"></i>
+                <small className="text-dark fw-semibold">Orders</small>
+                {orderCount > 0 && (
+                  <Badge 
+                    bg="info" 
+                    className="position-absolute top-0 end-0 translate-middle rounded-pill"
+                    style={{ fontSize: "0.6rem", padding: "0.2rem 0.4rem" }}
+                  >
+                    {orderCount}
+                  </Badge>
+                )}
+              </motion.div>
+
+              {/* Auth */}
+              {currentUser ? (
+                <motion.div 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="d-flex align-items-center gap-2"
+                >
+                  <div className="text-end">
+                    <div className="fw-bold text-dark small">
+                      Hi, {currentUser.displayName || currentUser.email.split('@')[0]}
+                    </div>
+                    <Button 
+                      variant="outline-dark" 
+                      size="sm" 
+                      onClick={handleLogout}
+                      className="border-1"
+                    >
+                      <i className="fas fa-sign-out-alt me-1"></i>
+                      Logout
+                    </Button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="outline-dark" 
+                    className="px-4"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    <i className="fas fa-user me-2"></i>
+                    Sign In
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Cart with Badge */}
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  variant="warning" 
+                  className="position-relative px-4"
+                  onClick={goToCart}
+                >
+                  <i className="fas fa-shopping-cart me-2"></i>
+                  Cart
+                  {cartCount > 0 && (
+                    <Badge 
+                      bg="danger" 
+                      className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              </motion.div>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+
+      {/* SECOND HEADER */}
+      <SecondHeader />
+
+      {/* MODALS */}
+      <AnimatePresence>
+        {/* Auth Modal */}
+        <Modal 
+          show={showAuthModal} 
+          onHide={() => setShowAuthModal(false)} 
+          centered
+          size="lg"
+        >
+          <Modal.Body className="p-0">
+            <AuthPage 
+              onClose={() => setShowAuthModal(false)} 
+              onLoginSuccess={handleLoginSuccess} 
+            />
+          </Modal.Body>
+        </Modal>
+
+        {/* Login Success Modal */}
+        {showLoginModal && (
+          <LoginConfirmationModal 
+            show={showLoginModal} 
+            onClose={() => setShowLoginModal(false)} 
+            userName={loggedInUserName} 
+          />
+        )}
+
+        {/* Logout Success Modal */}
+        {showLogoutModal && (
+          <LogoutConfirmationModal 
+            show={showLogoutModal} 
+            onClose={() => setShowLogoutModal(false)} 
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
 }

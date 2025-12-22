@@ -269,3 +269,96 @@ body {
     background-size: 200px 100%;
     animation: searchLoading 1.5s infinite;
 }
+
+/* search bar css */
+/* Highlight */
+.search-highlight {
+  background: #ffe58f;
+  padding: 0 2px;
+}
+
+/* Product image */
+.search-suggestion-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Discount badge */
+.discount-badge {
+  background: #dc2626;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Skeleton loader */
+.skeleton-item {
+  height: 56px;
+  background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+  animation: shimmer 1.2s infinite;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+/* Add to your Navbar.css file */
+
+/* Recent search item styling */
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+
+.suggestion-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Delete button styling */
+.suggestion-item .btn-link:hover {
+  color: #dc3545 !important;
+  text-decoration: none;
+}
+
+/* Clear all button */
+.suggestions-dropdown .btn-outline-secondary {
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+}
+
+.suggestions-dropdown .btn-outline-secondary:hover {
+  background-color: #f8f9fa;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+/* Text highlight */
+.search-highlight {
+  background-color: #fff3cd;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Loading skeleton */
+.skeleton-item {
+  height: 60px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

@@ -183,16 +183,16 @@ function ProductDetailPage() {
     const fetchSellerInfo = async (productData) => {
         try {
             setSellerInfo(prev => ({ ...prev, loadingSellers: true }));
-            
+
             // Get current product's seller ID from multiple possible fields
             const currentSellerId = productData.sellerId || productData.sellerid || productData.vendorId || productData.vendor_id || productData.sellersid;
-            
+
             if (currentSellerId) {
                 // Try to fetch seller details from sellers collection
                 try {
                     const sellerRef = doc(db, "sellers", currentSellerId);
                     const sellerSnap = await getDoc(sellerRef);
-                    
+
                     if (sellerSnap.exists()) {
                         const sellerData = sellerSnap.data();
                         setSellerInfo(prev => ({
@@ -248,12 +248,12 @@ function ProductDetailPage() {
                     id: doc.id,
                     ...doc.data()
                 }));
-                
+
                 setSellerInfo(prev => ({ ...prev, allSellers }));
             } catch (sellersError) {
                 console.error("Error fetching all sellers:", sellersError);
             }
-            
+
         } catch (error) {
             console.error("Error in fetchSellerInfo:", error);
         } finally {
@@ -308,10 +308,10 @@ function ProductDetailPage() {
 
                 const data = { id: productSnap.id, ...productSnap.data() };
                 setProduct(data);
-                
+
                 // 🆕 Fetch seller information after getting product data
                 await fetchSellerInfo(data);
-                
+
                 await fetchReviews(id);
                 const fetchedVariants = Array.isArray(data.sizevariants) ? data.sizevariants : [];
                 setProductVariants(fetchedVariants);
@@ -675,9 +675,9 @@ function ProductDetailPage() {
                     <Col md={7}>
                         <h2 className="fw-bold">{product.name || product.title}</h2>
                         <p className="text-primary fw-semibold text-uppercase">{product.category}</p>
-                        
+
                         {/* 🆕 Enhanced Seller Information Display */}
-                        
+
                         <div className="product-rating mb-3">
                             <span className="text-warning fw-bold me-2">
                                 {rating.rate.toFixed(1)} <i className="fas fa-star small"></i>
@@ -767,7 +767,7 @@ function ProductDetailPage() {
                                 <i className="fas fa-shopping-cart me-2"></i> ADD TO CART
                             </Button>
                             <Button
-                                variant="danger"
+                                variant="success"
                                 className="fw-bold"
                                 onClick={handleBuyNow}
                                 disabled={productVariants.length > 0 && (!selectedSize || isOutOfStock) || (!productVariants.length && isOutOfStock)}
@@ -841,11 +841,11 @@ function ProductDetailPage() {
                                             className="mt-2"
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                dispatch(addToCart({ 
-                                                    id: p.id, 
-                                                    title: p.name || p.title, 
-                                                    price: p.priceValue, 
-                                                    image: p.images || p.image, 
+                                                dispatch(addToCart({
+                                                    id: p.id,
+                                                    title: p.name || p.title,
+                                                    price: p.priceValue,
+                                                    image: p.images || p.image,
                                                     quantity: 1,
                                                     sellerId: p.sellerId || "default_seller" // 🆕 Include seller ID
                                                 }));

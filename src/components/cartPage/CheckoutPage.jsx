@@ -32,7 +32,7 @@ const RAZORPAY_KEY_ID = "rzp_live_RF5gE7NCdAsEIs";
 // 🌐 Alternative Geocoding Service: OpenStreetMap Nominatim
 const NOMINATIM_CONTACT_EMAIL = "your.app.contact@example.com";
 
-// Utility function for debouncing (Performance Improvement)
+
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -62,7 +62,7 @@ const CheckoutPage = () => {
   const productFromBuyNow = location.state?.product;
   const quantityFromBuyNow = location.state?.quantity || 1;
 
-  // Merge cart + Buy Now items (avoid duplicates) and ensure SKU
+
   const mergedCartItems = cartItemsFromRedux.map((item) => ({
     ...item,
     sku: item.sku || item.SKU || item.product_sku || item.skuCode || "N/A",
@@ -112,12 +112,10 @@ const CheckoutPage = () => {
   const [locationStatusMessage, setLocationStatusMessage] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
 
-  // 🆕 Enhanced function to get seller ID from multiple possible fields
   const getSellerIdFromProduct = (productData) => {
     return productData.sellerId || productData.sellerid || productData.vendorId || productData.vendor_id || productData.sellersid || "default_seller";
   };
 
-  // Fetch product main SKU AND seller ID - UPDATED with proper field handling
   const fetchProductMainSkuAndSeller = async (productId) => {
     try {
       const productRef = doc(db, "products", productId);
@@ -126,10 +124,10 @@ const CheckoutPage = () => {
       if (productSnap.exists()) {
         const data = productSnap.data();
         const mainSku = data.sku || data.basesku || productId;
-        
+
         // 🆕 Use the enhanced function to get seller ID
         const sellerId = getSellerIdFromProduct(data);
-        
+
         console.log(`Product ${productId} - Seller ID: ${sellerId}`);
         return { mainSku, sellerId };
       } else {
@@ -270,7 +268,7 @@ const CheckoutPage = () => {
 
       if (data.address) {
         const address = data.address;
-        
+
         const doorNumber = address.house_number || address.building || address.office || "";
         const streetName = address.road || address.pedestrian || address.street || address.residential || "";
         const areaLocality = address.suburb || address.neighbourhood || address.hamlet || address.village || "";
@@ -278,17 +276,17 @@ const CheckoutPage = () => {
         let addressComponents = [];
         if (doorNumber) addressComponents.push(doorNumber);
         if (streetName) addressComponents.push(streetName);
-        if (streetName && areaLocality) addressComponents.push(areaLocality); 
-        
-        let cleanedAddress = addressComponents.join(", ");
-        
-        if (cleanedAddress.length < 10 || (doorNumber === "" && streetName === "")) {
-            const fullDisplayNameParts = data.display_name.split(",").map(p => p.trim()).filter(p => p !== '');
-            cleanedAddress = fullDisplayNameParts.slice(0, Math.min(5, fullDisplayNameParts.length)).join(", ");
+        if (streetName && areaLocality) addressComponents.push(areaLocality);
 
-            if (cleanedAddress.length < 10 && areaLocality) {
-                cleanedAddress = areaLocality;
-            }
+        let cleanedAddress = addressComponents.join(", ");
+
+        if (cleanedAddress.length < 10 || (doorNumber === "" && streetName === "")) {
+          const fullDisplayNameParts = data.display_name.split(",").map(p => p.trim()).filter(p => p !== '');
+          cleanedAddress = fullDisplayNameParts.slice(0, Math.min(5, fullDisplayNameParts.length)).join(", ");
+
+          if (cleanedAddress.length < 10 && areaLocality) {
+            cleanedAddress = areaLocality;
+          }
         }
 
         const newAddressDetails = {
@@ -392,9 +390,7 @@ const CheckoutPage = () => {
     }
   };
 
-  // 🆕 Enhanced function to get seller ID for cart item
   const getSellerIdForCartItem = (item) => {
-    // Priority: 1. From fetched productSellers, 2. From item.sellerId, 3. From item.sellerid, 4. Default
     return productSellers[item.id] || item.sellerId || item.sellerid || "default_seller";
   };
 
@@ -408,14 +404,14 @@ const CheckoutPage = () => {
     try {
       const ordersRef = collection(db, "users", userId, "orders");
       const orderId = `ORD-${Date.now()}`;
-      
+
       // 🆕 FIXED: Get all unique seller IDs from the order using the enhanced function
-      const sellerIdsInOrder = [...new Set(mergedCartItems.map(item => 
+      const sellerIdsInOrder = [...new Set(mergedCartItems.map(item =>
         getSellerIdForCartItem(item)
       ))];
-      
+
       console.log("Seller IDs for this order:", sellerIdsInOrder);
-      
+
       const orderData = {
         userId,
         orderId,
@@ -446,8 +442,7 @@ const CheckoutPage = () => {
               : undefined;
           const finalSku =
             productSkus[item.id] || (item.sku !== "N/A" ? item.sku : item.id);
-          
-          // 🆕 FIXED: Get seller ID for this product using the enhanced function
+
           const sellerId = getSellerIdForCartItem(item);
 
           console.log(`Product ${item.id} assigned to seller: ${sellerId}`);
@@ -463,7 +458,7 @@ const CheckoutPage = () => {
             color: item.color || null,
             size: item.size || null,
             images: item.images || [],
-            sellerId: sellerId, // Seller ID included with each product
+            sellerId: sellerId, 
             ...(sizevariants && { sizevariants: sizevariants }),
             totalAmount: item.price * item.quantity,
           };
@@ -471,17 +466,15 @@ const CheckoutPage = () => {
         paymentId,
         shippingCharges: 0,
       };
-      
+
       const orderDocRef = await addDoc(ordersRef, orderData);
       const orderDocId = orderDocRef.id;
 
       console.log("Main order saved with ID:", orderDocId);
       console.log("Order data saved:", orderData);
 
-      // Also save to seller's orders collection
       await saveOrderToSellerCollections(orderData, orderDocId);
 
-      // Update each seller's document with this order reference
       await updateSellerDocuments(sellerIdsInOrder, orderDocId, orderData);
 
       alert("Order placed successfully!");
@@ -511,7 +504,7 @@ const CheckoutPage = () => {
       for (const [sellerId, sellerProducts] of Object.entries(productsBySeller)) {
         const sellerOrderRef = collection(db, "sellers", sellerId, "orders");
         const sellerSubtotal = sellerProducts.reduce((total, product) => total + product.totalAmount, 0);
-        
+
         const sellerOrderData = {
           ...orderData,
           orderDocId: orderDocId,
@@ -521,10 +514,10 @@ const CheckoutPage = () => {
           createdAt: serverTimestamp(),
           orderDate: serverTimestamp(),
         };
-        
+
         // Remove the original document ID to let Firestore generate a new one
         delete sellerOrderData.id;
-        
+
         const sellerOrderDocRef = await addDoc(sellerOrderRef, sellerOrderData);
         console.log(`Order saved for seller ${sellerId} with ID: ${sellerOrderDocRef.id}`);
       }
@@ -538,11 +531,11 @@ const CheckoutPage = () => {
     try {
       for (const sellerId of sellerIds) {
         const sellerRef = doc(db, "sellers", sellerId);
-        
+
         // Get seller's products from this order
         const sellerProducts = orderData.products.filter(product => product.sellerId === sellerId);
         const sellerSubtotal = sellerProducts.reduce((total, product) => total + product.totalAmount, 0);
-        
+
         const orderSummary = {
           orderId: orderData.orderId,
           orderDocId: orderDocId,
@@ -561,7 +554,7 @@ const CheckoutPage = () => {
           totalSales: sellerSubtotal,
           updatedAt: serverTimestamp(),
         });
-        
+
         console.log(`Updated seller document for: ${sellerId}`);
       }
     } catch (error) {
@@ -806,22 +799,22 @@ const CheckoutPage = () => {
                   </Form.Group>
                 </Col>
               </Row>
-              
+
               {locationStatusMessage ? (
-                  <Alert variant="success" className="mt-2">
-                      {locationStatusMessage}
-                  </Alert>
+                <Alert variant="success" className="mt-2">
+                  {locationStatusMessage}
+                </Alert>
               ) : geocodingError ? (
-                  <Alert 
-                      variant={
-                          geocodingError.includes("failed") || geocodingError.includes("denied") || geocodingError.includes("Could not get location")
-                              ? "danger"
-                              : "info"
-                      } 
-                      className="mt-2"
-                  >
-                      {geocodingError}
-                  </Alert>
+                <Alert
+                  variant={
+                    geocodingError.includes("failed") || geocodingError.includes("denied") || geocodingError.includes("Could not get location")
+                      ? "danger"
+                      : "info"
+                  }
+                  className="mt-2"
+                >
+                  {geocodingError}
+                </Alert>
               ) : null}
 
               <Form.Group className="mb-3">
@@ -921,12 +914,12 @@ const CheckoutPage = () => {
                       <p className="fw-bold text-dark mb-1">
                         {item.title || item.name || "Unnamed Product"}
                       </p>
-                      
+
                       {/* 🆕 Display Seller ID */}
                       <small className="d-block text-info fw-semibold">
                         Seller ID: {sellerId}
                       </small>
-                      
+
                       {item.color && (
                         <small className="d-block text-muted">
                           Color: {item.color}

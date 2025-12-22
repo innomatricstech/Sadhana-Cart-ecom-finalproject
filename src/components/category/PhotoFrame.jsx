@@ -12,6 +12,52 @@ import {
 } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
+// 🎨 Color Mapping Function
+const getColorHex = (colorName) => {
+  if (!colorName || colorName === "N/A") return "#cccccc"; // Default gray
+  
+  const colorMap = {
+    red: "#ff6b6b",
+    blue: "#4d96ff",
+    green: "#6bcf7f",
+    yellow: "#ffd93d",
+    orange: "#ff9a3d",
+    purple: "#9d65c9",
+    pink: "#ff9cda",
+    black: "#333333",
+    white: "#ffffff",
+    gray: "#adb5bd",
+    grey: "#adb5bd",
+    brown: "#a0522d",
+    cyan: "#3dc7d6",
+    teal: "#20c997",
+    indigo: "#6610f2",
+    lime: "#c0ca33",
+    amber: "#ffb300",
+    maroon: "#800000",
+    navy: "#001f3f",
+    olive: "#3d9970",
+    silver: "#c0c0c0",
+    gold: "#ffd700",
+    violet: "#8a2be2",
+    magenta: "#ff00ff",
+    turquoise: "#40e0d0",
+    coral: "#ff7f50",
+    beige: "#f5f5dc",
+    lavender: "#e6e6fa",
+    mint: "#98ff98",
+    peach: "#ffdab9",
+    ruby: "#e0115f",
+    sapphire: "#0f52ba",
+    emerald: "#50c878",
+    topaz: "#ffc87c",
+    amethyst: "#9966cc",
+  };
+
+  const normalizedColor = colorName.toLowerCase().trim();
+  return colorMap[normalizedColor] || "#cccccc";
+};
+
 // 🌈 Utility: Extract color from description
 const extractColorFromDescription = (description) => {
   if (!description || typeof description !== "string") return "N/A";
@@ -24,18 +70,33 @@ const ProductCard = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
   const productColor =
     product.color || extractColorFromDescription(product.description);
+  const colorHex = getColorHex(productColor);
 
   const cardStyle = {
-    border: "none",
+    border: `3px solid ${colorHex}`,
     borderRadius: "16px",
     overflow: "hidden",
     backgroundColor: "#ffffff",
     boxShadow: isHovered
-      ? "0 10px 25px rgba(0,0,0,0.15)"
-      : "0 4px 12px rgba(0,0,0,0.1)",
+      ? `0 10px 25px rgba(0,0,0,0.15), 0 0 0 1px ${colorHex}40`
+      : `0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px ${colorHex}20`,
     transform: isHovered ? "translateY(-8px) scale(1.03)" : "scale(1)",
     transition: "all 0.3s ease",
     cursor: "pointer",
+    position: "relative",
+  };
+
+  // Add a subtle inner glow effect on hover
+  const innerGlowStyle = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: "13px", // Slightly less than card border-radius
+    boxShadow: isHovered ? `inset 0 0 15px ${colorHex}40` : "none",
+    pointerEvents: "none",
+    transition: "box-shadow 0.3s ease",
   };
 
   const imageContainer = {
@@ -71,6 +132,9 @@ const ProductCard = ({ product }) => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <Card style={cardStyle} className="h-100">
+          {/* Inner glow effect */}
+          <div style={innerGlowStyle} />
+          
           <div style={imageContainer}>
             <Card.Img
               variant="top"
@@ -86,7 +150,14 @@ const ProductCard = ({ product }) => {
             <Card.Text className="text-secondary small mb-2">
               Color:{" "}
               <strong
-                style={{ color: productColor !== "N/A" ? "black" : "grey" }}
+                style={{ 
+                  color: colorHex,
+                  backgroundColor: `${colorHex}15`,
+                  padding: "2px 10px",
+                  borderRadius: "12px",
+                  display: "inline-block",
+                  border: `1px solid ${colorHex}30`
+                }}
               >
                 {productColor}
               </strong>
@@ -278,7 +349,7 @@ function PhotoFrame() {
 
           {!hasMore && (
             <p className="text-muted mt-4 p-3 border-top">
-              🎉 **You’ve reached the end of the {categoryName} catalog!**
+              🎉 **You've reached the end of the {categoryName} catalog!**
             </p>
           )}
         </>

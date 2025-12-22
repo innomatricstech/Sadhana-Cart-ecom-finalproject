@@ -14,26 +14,32 @@ import { Link } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
-// 🎨 STYLE CONSTANTS
-const PRIMARY_TEXT_COLOR = "#101010";
-const ACCENT_COLOR = "#198754";
-const SALE_COLOR = "#dc3545";
+// 🎨 STYLE CONSTANTS (Updated for Pink Theme)
+const PRIMARY_TEXT_COLOR = "#2d2d2d";
+const ACCENT_COLOR = "#d63384"; // Deep Pink/Magenta Accent
+const SALE_COLOR = "#c71585";    // Medium Violet Red
 const WHITE_COLOR = "#FFFFFF";
+const PRODUCT_BG_COLOR = "#fffafb"; // Very light pink-white for cards
+const PINK_BG_GRADIENT = "linear-gradient(135deg, #fff0f3 0%, #f7d9e3 100%)";
 
 // 🎨 CUSTOM STYLES
 const customStyles = {
   sectionContainer: {
-    backgroundColor: WHITE_COLOR,
-    borderRadius: "25px",
-    padding: "3rem 1rem",
-    boxShadow: "0 15px 50px rgba(0, 0, 0, 0.08)",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backdropFilter: "blur(15px)",
+    borderRadius: "30px",
+    padding: "3.5rem 1.5rem",
+    boxShadow: "0 20px 60px rgba(214, 51, 132, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.5)",
+    position: "relative",
+    overflow: "hidden"
   },
   productCard: {
-    border: "1px solid #e9ecef",
-    borderRadius: "15px",
+    border: "none",
+    borderRadius: "20px",
     overflow: "hidden",
-    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
+    boxShadow: "0 10px 25px rgba(214, 51, 132, 0.05)",
+    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
     backgroundColor: WHITE_COLOR,
     cursor: "pointer",
     height: "100%",
@@ -41,112 +47,128 @@ const customStyles = {
   },
   imageContainer: (isMobile) => ({
     width: "100%",
-    height: isMobile ? "180px" : "220px",
+    height: isMobile ? "180px" : "240px",
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: PRODUCT_BG_COLOR,
+    padding: "10px",
   }),
   productImage: {
     maxWidth: "100%",
     maxHeight: "100%",
     objectFit: "contain",
-    transition: "transform 0.3s ease-in-out",
-    padding: "3px",
+    transition: "transform 0.5s ease",
   },
   discountBadge: {
     position: "absolute",
-    top: "8px",
-    right: "8px",
-    backgroundColor: SALE_COLOR,
+    top: "12px",
+    right: "12px",
+    backgroundColor: ACCENT_COLOR,
     color: WHITE_COLOR,
-    padding: "0.2rem 0.5rem",
+    padding: "0.4rem 0.8rem",
     borderRadius: "50px",
-    fontSize: "0.75rem",
-    fontWeight: "900",
+    fontSize: "0.7rem",
+    fontWeight: "800",
     zIndex: 10,
-    boxShadow: "0 2px 5px rgba(220, 53, 69, 0.3)",
+    boxShadow: "0 4px 12px rgba(214, 51, 132, 0.3)",
     letterSpacing: "0.5px",
   },
   brandText: {
-    fontSize: "0.75rem",
-    fontWeight: "600",
-    color: ACCENT_COLOR,
-    marginBottom: "1px",
-    letterSpacing: "0.5px",
+    fontSize: "0.7rem",
+    fontWeight: "700",
+    color: "#a86d8d",
+    marginBottom: "4px",
+    letterSpacing: "1px",
+    textTransform: "uppercase"
   },
   title: {
     fontSize: "1rem",
     fontWeight: "700",
     color: PRIMARY_TEXT_COLOR,
-    marginBottom: "4px",
+    marginBottom: "8px",
+    lineHeight: "1.3"
   },
   price: {
-    fontSize: "1.4rem",
+    fontSize: "1.35rem",
     fontWeight: "900",
-    color: SALE_COLOR,
+    color: ACCENT_COLOR,
     letterSpacing: "-0.5px",
   },
-  originalPrice: { fontSize: "0.8rem", color: "#adb5bd" },
+  originalPrice: { 
+    fontSize: "0.85rem", 
+    color: "#adb5bd",
+    marginLeft: "8px"
+  },
   header: {
-    fontSize: "2.5rem",
+    fontSize: "clamp(1.8rem, 5vw, 2.5rem)",
     fontWeight: "900",
     color: PRIMARY_TEXT_COLOR,
-    letterSpacing: "-1.5px",
-    display: "inline-block",
+    letterSpacing: "-1px",
     position: "relative",
-    paddingBottom: "12px",
+    zIndex: 2
   },
   headerUnderline: {
-    content: '""',
     position: "absolute",
-    bottom: 0,
+    bottom: "8px",
     left: "50%",
     transform: "translateX(-50%)",
-    width: "100px",
-    height: "3px",
-    backgroundColor: ACCENT_COLOR,
-    borderRadius: "2px",
+    width: "120px",
+    height: "15px",
+    backgroundColor: "rgba(214, 51, 132, 0.1)",
+    zIndex: -1,
+    borderRadius: "4px",
   },
   viewDealButton: {
     transition: "all 0.3s ease",
-    borderRadius: "6px",
-    fontSize: "0.9rem",
+    borderRadius: "12px",
+    fontSize: "0.85rem",
     fontWeight: "700",
     backgroundColor: ACCENT_COLOR,
     borderColor: ACCENT_COLOR,
-    padding: "0.4rem 0.8rem",
+    padding: "0.6rem 1rem",
+    marginTop: "12px",
+    color: WHITE_COLOR
   },
   viewDealButtonHover: {
-    backgroundColor: SALE_COLOR,
-    borderColor: SALE_COLOR,
+    backgroundColor: PRIMARY_TEXT_COLOR,
+    borderColor: PRIMARY_TEXT_COLOR,
     transform: "translateY(-2px)",
-    boxShadow: `0 5px 15px ${SALE_COLOR}80`,
+    boxShadow: `0 8px 20px rgba(0, 0, 0, 0.15)`,
   },
   exploreButton: {
     backgroundColor: PRIMARY_TEXT_COLOR,
-    color: "white",
-    borderColor: PRIMARY_TEXT_COLOR,
+    color: WHITE_COLOR,
+    border: "none",
     transition: "all 0.3s ease-in-out",
     borderRadius: "50px",
-    fontSize: "1.1rem",
-    padding: "0.6rem 3rem",
-    boxShadow: `0 8px 25px ${PRIMARY_TEXT_COLOR}40`,
+    fontSize: "1rem",
+    padding: "0.8rem 3rem",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
   },
   exploreButtonHover: {
     backgroundColor: ACCENT_COLOR,
-    borderColor: ACCENT_COLOR,
-    transform: "scale(1.03)",
-    boxShadow: `0 5px 15px ${ACCENT_COLOR}60`,
+    transform: "translateY(-3px)",
+    boxShadow: `0 10px 25px rgba(214, 51, 132, 0.4)`,
   },
+  pinkWatermark: {
+    position: "absolute",
+    bottom: "-30px",
+    left: "-20px",
+    fontSize: "12rem",
+    fontWeight: "900",
+    color: "rgba(214, 51, 132, 0.03)",
+    userSelect: "none",
+    pointerEvents: "none"
+  }
 };
 
 // 🧠 Utility Functions
 const handleCardMouseEnter = (e) => {
-  e.currentTarget.style.transform = "translateY(-8px)";
-  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
-  e.currentTarget.querySelector("img").style.transform = "scale(1.03)";
+  e.currentTarget.style.transform = "translateY(-12px)";
+  e.currentTarget.style.boxShadow = "0 25px 50px rgba(214, 51, 132, 0.12)";
+  e.currentTarget.querySelector("img").style.transform = "scale(1.08)";
 };
 const handleCardMouseLeave = (e) => {
   e.currentTarget.style.transform = "translateY(0)";
@@ -175,7 +197,7 @@ const getProductImageSource = (product) => {
     return product.image;
   if (Array.isArray(product.images) && product.images.length > 0)
     return product.images[0];
-  return "https://placehold.co/300x380/e0e0e0/555?text=NO+IMAGE";
+  return "https://placehold.co/300x380/fce4ec/ad1457?text=NO+IMAGE";
 };
 const calculateDiscount = (price, originalPrice) => {
   if (originalPrice > price)
@@ -191,16 +213,15 @@ const generateDummyProduct = (index) => {
       ? finalPrice + Math.floor(Math.random() * 500) + 500
       : basePrice;
   return {
-    id: `fashion-dummy-${index}`,
-    name: `Stylish Fashion ${index + 1}`,
-    brand: "TRENDY WEAR",
+    id: `fashion-pink-${index}`,
+    name: `Premium Look ${index + 1}`,
+    brand: "CHIC VIBE",
     price: finalPrice,
     originalPrice,
-    image: `https://picsum.photos/seed/fashion${index}/300/300`,
+    image: `https://picsum.photos/seed/pinkfashion${index}/300/300`,
   };
 };
 
-// 🧩 MAIN COMPONENT
 function HomeFashionSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -216,8 +237,7 @@ function HomeFashionSection() {
     const fetchFashion = async () => {
       setLoading(true);
       try {
-        // 🧠 LocalStorage cache check
-        const cached = localStorage.getItem("fashionProducts");
+        const cached = localStorage.getItem("fashionProductsPink");
         if (cached) {
           setProducts(JSON.parse(cached));
           setLoading(false);
@@ -239,11 +259,9 @@ function HomeFashionSection() {
             : 999,
         }));
 
-        // Ensure at least 4 items
         while (data.length < productLimit)
           data.push(generateDummyProduct(data.length));
 
-        // Shuffle & limit
         for (let i = data.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [data[i], data[j]] = [data[j], data[i]];
@@ -251,12 +269,9 @@ function HomeFashionSection() {
 
         data = data.slice(0, productLimit);
         setProducts(data);
-        localStorage.setItem("fashionProducts", JSON.stringify(data)); // Cache
+        localStorage.setItem("fashionProductsPink", JSON.stringify(data));
       } catch (err) {
-        console.warn("Firebase fetch failed, using dummy products:", err);
-        setProducts(
-          Array.from({ length: 4 }, (_, i) => generateDummyProduct(i))
-        );
+        setProducts(Array.from({ length: 4 }, (_, i) => generateDummyProduct(i)));
       } finally {
         setLoading(false);
       }
@@ -265,53 +280,42 @@ function HomeFashionSection() {
   }, []);
 
   return (
-    <Container fluid style={{ backgroundColor: "#f8f9fa" }}>
-      <Container className="py-4" style={customStyles.sectionContainer}>
+    <Container fluid style={{ background: PINK_BG_GRADIENT, padding: "70px 0" }}>
+      <Container style={customStyles.sectionContainer}>
+        <div style={customStyles.pinkWatermark}>CHIC</div>
+
         {/* Header */}
-        <div className="text-center mb-3 mb-md-4">
+        <div className="text-center mb-5">
           <h3 style={customStyles.header}>
-            STYLE & TRENDS <span style={{ color: ACCENT_COLOR }}>ON SALE</span>
+            FASHION <span style={{ color: ACCENT_COLOR }}>COLLECTION</span>
             <div style={customStyles.headerUnderline}></div>
           </h3>
-          <p className="text-muted mt-2 fs-6 fw-light d-none d-sm-block">
-            Discover the latest fashion pieces at unbeatable prices.
+          <p className="text-muted mt-3 fs-6 fw-light d-none d-sm-block">
+            Elevate your wardrobe with our latest high-fashion arrivals.
           </p>
         </div>
 
         {loading ? (
-          <div className="text-center py-4">
-            <Spinner animation="border" variant="success" />
-            <p className="mt-2 text-muted fs-6">Loading trending fashion...</p>
+          <div className="text-center py-5">
+            <Spinner animation="border" style={{ color: ACCENT_COLOR }} />
+            <p className="mt-3 text-muted">Styling your feed...</p>
           </div>
         ) : (
           <>
-            <Row
-              xs={2}
-              sm={2}
-              md={3}
-              lg={4}
-              className="g-2 g-md-3 justify-content-center"
-            >
+            <Row xs={2} sm={2} md={3} lg={4} className="g-3 g-lg-4 justify-content-center">
               {products.map((product) => {
-                const discountPercent = calculateDiscount(
-                  product.price,
-                  product.originalPrice
-                );
+                const discountPercent = calculateDiscount(product.price, product.originalPrice);
                 return (
                   <Col key={product.id}>
-                    <Link
-                      to={`/product/${product.id}`}
-                      className="text-decoration-none d-block"
-                    >
+                    <Link to={`/product/${product.id}`} className="text-decoration-none d-block h-100">
                       <Card
-                        className="h-100 product-card"
                         style={customStyles.productCard}
                         onMouseEnter={handleCardMouseEnter}
                         onMouseLeave={handleCardMouseLeave}
                       >
                         {discountPercent > 0 && (
                           <Badge style={customStyles.discountBadge}>
-                            -{discountPercent}% OFF
+                            -{discountPercent}%
                           </Badge>
                         )}
                         <div style={customStyles.imageContainer(isMobile)}>
@@ -320,46 +324,29 @@ function HomeFashionSection() {
                             alt={product.name}
                             effect="blur"
                             style={customStyles.productImage}
-                            onError={(e) =>
-                              (e.target.src =
-                                "https://placehold.co/300x380/e0e0e0/555?text=Image+Error")
-                            }
+                            onError={(e) => (e.target.src = "https://placehold.co/300x380/fce4ec/ad1457?text=Error")}
                           />
                         </div>
-                        <Card.Body className="text-start p-2 p-md-3 d-flex flex-column">
-                          <p
-                            style={customStyles.brandText}
-                            className="text-uppercase"
-                          >
-                            {product.brand}
-                          </p>
-                          <Card.Title
-                            style={customStyles.title}
-                            className="text-truncate"
-                          >
+                        <Card.Body className="text-start p-3 d-flex flex-column">
+                          <p style={customStyles.brandText}>{product.brand}</p>
+                          <Card.Title style={customStyles.title} className="text-truncate">
                             {product.name}
                           </Card.Title>
-                          <div className="d-flex align-items-baseline justify-content-between mt-auto pt-1 pt-md-2">
-                            <Card.Text style={customStyles.price}>
-                              ₹{product.price}
-                            </Card.Text>
+                          <div className="d-flex align-items-center mt-auto">
+                            <span style={customStyles.price}>₹{product.price}</span>
                             {product.originalPrice > product.price && (
-                              <small
-                                style={customStyles.originalPrice}
-                                className="text-decoration-line-through"
-                              >
+                              <span style={customStyles.originalPrice} className="text-decoration-line-through">
                                 ₹{product.originalPrice}
-                              </small>
+                              </span>
                             )}
                           </div>
                           <Button
-                            variant="success"
+                            variant="primary"
                             style={customStyles.viewDealButton}
-                            className="w-100 mt-2 text-uppercase"
                             onMouseEnter={handleViewDealMouseEnter}
                             onMouseLeave={handleViewDealMouseLeave}
                           >
-                            View Deal
+                            SHOP NOW
                           </Button>
                         </Card.Body>
                       </Card>
@@ -369,12 +356,10 @@ function HomeFashionSection() {
               })}
             </Row>
 
-            <div className="text-center mt-4 pt-3">
+            <div className="text-center mt-5">
               <Link to="/fashion">
                 <Button
                   style={customStyles.exploreButton}
-                  size="md"
-                  className="fw-bold"
                   onMouseEnter={handleExploreMouseEnter}
                   onMouseLeave={handleExploreMouseLeave}
                 >

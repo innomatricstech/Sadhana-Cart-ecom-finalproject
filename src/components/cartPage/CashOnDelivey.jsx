@@ -160,8 +160,7 @@ function CashOnDelivery() {
             totalSales: 0,
             lastOrderDate: serverTimestamp(),
           }).catch((err) => {
-            // If update fails because doc doesn't exist, fallback to set via addDoc is not needed here;
-            // updateDoc with merge will create the doc when it doesn't exist in server SDK, but if your rules block it maybe fail.
+            
             console.warn("Could not initialize seller doc:", sellerId, err);
           });
         }
@@ -199,12 +198,12 @@ function CashOnDelivery() {
         const sizevariants =
           hasVariantData || item.color || item.size
             ? {
-                sku: item.sku !== "N/A" ? item.sku : null,
-                stock: item.stock || null,
-                weight: item.weight || null,
-                width: item.width || null,
-                height: item.height || null,
-              }
+              sku: item.sku !== "N/A" ? item.sku : null,
+              stock: item.stock || null,
+              weight: item.weight || null,
+              width: item.width || null,
+              height: item.height || null,
+            }
             : undefined;
         const finalSku = productSkus[item.id] || (item.sku !== "N/A" ? item.sku : item.id);
         const sellerId = getSellerIdForCartItem(item);

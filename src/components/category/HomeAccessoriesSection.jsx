@@ -14,26 +14,29 @@ import { Link } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
-// 🎨 STYLE CONSTANTS
-const PRIMARY_TEXT_COLOR = "#101010";
-const ACCENT_COLOR = "#198754";
-const SALE_COLOR = "#dc3545";
+// 🎨 UPDATED STYLE CONSTANTS (Nature/Green Theme)
+const PRIMARY_TEXT_COLOR = "#1B3022";
+const ACCENT_COLOR = "#2D6A4F"; // Forest Green
+const SOFT_GREEN = "#D8F3DC"; // Mint Green
+const SALE_COLOR = "#081C15"; // Dark Green for contrast
 const WHITE_COLOR = "#FFFFFF";
 
-// 🎨 CUSTOM STYLES
+// 🎨 CUSTOM STYLES & ANIMATIONS
 const customStyles = {
   sectionContainer: {
-    backgroundColor: WHITE_COLOR,
-    borderRadius: "25px",
-    padding: "3rem 1rem",
-    boxShadow: "0 15px 50px rgba(0, 0, 0, 0.08)",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backdropFilter: "blur(10px)",
+    borderRadius: "30px",
+    padding: "4rem 1.5rem",
+    boxShadow: "0 20px 60px rgba(45, 106, 79, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.5)",
   },
   productCard: {
-    border: "1px solid #e9ecef",
-    borderRadius: "15px",
+    border: "none",
+    borderRadius: "20px",
     overflow: "hidden",
-    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.05)",
+    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
     backgroundColor: WHITE_COLOR,
     cursor: "pointer",
     height: "100%",
@@ -41,88 +44,72 @@ const customStyles = {
   },
   imageContainer: (isMobile) => ({
     width: "100%",
-    height: isMobile ? "180px" : "220px",
+    height: isMobile ? "180px" : "240px",
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: SOFT_GREEN,
+    padding: "15px",
   }),
   productImage: {
     maxWidth: "100%",
     maxHeight: "100%",
     objectFit: "contain",
-    transition: "transform 0.3s ease-in-out",
-    padding: "3px",
+    transition: "transform 0.5s ease",
   },
   discountBadge: {
     position: "absolute",
-    top: "8px",
-    right: "8px",
-    backgroundColor: SALE_COLOR,
+    top: "12px",
+    right: "12px",
+    backgroundColor: ACCENT_COLOR,
     color: WHITE_COLOR,
-    padding: "0.2rem 0.5rem",
-    borderRadius: "50px",
+    padding: "0.4rem 0.8rem",
+    borderRadius: "12px",
     fontSize: "0.75rem",
-    fontWeight: "900",
+    fontWeight: "800",
     zIndex: 10,
-    boxShadow: "0 2px 5px rgba(220, 53, 69, 0.3)",
-    letterSpacing: "0.5px",
+    boxShadow: "0 4px 10px rgba(45, 106, 79, 0.3)",
   },
   brandText: {
-    fontSize: "0.75rem",
-    fontWeight: "600",
+    fontSize: "0.7rem",
+    fontWeight: "700",
     color: ACCENT_COLOR,
-    marginBottom: "1px",
-    letterSpacing: "0.5px",
+    marginBottom: "4px",
+    letterSpacing: "1px",
   },
   title: {
-    fontSize: "1rem",
+    fontSize: "1.05rem",
     fontWeight: "700",
     color: PRIMARY_TEXT_COLOR,
-    marginBottom: "4px",
+    marginBottom: "8px",
+    lineHeight: "1.2",
   },
   price: {
-    fontSize: "1.4rem",
+    fontSize: "1.3rem",
     fontWeight: "900",
-    color: SALE_COLOR,
+    color: PRIMARY_TEXT_COLOR,
     letterSpacing: "-0.5px",
   },
-  originalPrice: { fontSize: "0.8rem", color: "#adb5bd" },
+  originalPrice: { fontSize: "0.85rem", color: "#95a5a6", marginLeft: "8px" },
   header: {
-    fontSize: "2.5rem",
+    fontSize: "clamp(1.8rem, 5vw, 2.8rem)",
     fontWeight: "900",
     color: PRIMARY_TEXT_COLOR,
     letterSpacing: "-1.5px",
     display: "inline-block",
     position: "relative",
-    paddingBottom: "12px",
-  },
-  headerUnderline: {
-    content: '""',
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100px",
-    height: "3px",
-    backgroundColor: ACCENT_COLOR,
-    borderRadius: "2px",
+    animation: "floatTitle 4s ease-in-out infinite",
   },
   viewDealButton: {
     transition: "all 0.3s ease",
-    borderRadius: "6px",
-    fontSize: "0.9rem",
+    borderRadius: "10px",
+    fontSize: "0.85rem",
     fontWeight: "700",
     backgroundColor: ACCENT_COLOR,
     borderColor: ACCENT_COLOR,
-    padding: "0.4rem 0.8rem",
-  },
-  viewDealButtonHover: {
-    backgroundColor: SALE_COLOR,
-    borderColor: SALE_COLOR,
-    transform: "translateY(-2px)",
-    boxShadow: `0 5px 15px ${SALE_COLOR}80`,
+    padding: "0.6rem",
+    marginTop: "10px",
   },
   exploreButton: {
     backgroundColor: PRIMARY_TEXT_COLOR,
@@ -130,45 +117,50 @@ const customStyles = {
     borderColor: PRIMARY_TEXT_COLOR,
     transition: "all 0.3s ease-in-out",
     borderRadius: "50px",
-    fontSize: "1.1rem",
-    padding: "0.6rem 3rem",
-    boxShadow: `0 8px 25px ${PRIMARY_TEXT_COLOR}40`,
-  },
-  exploreButtonHover: {
-    backgroundColor: ACCENT_COLOR,
-    borderColor: ACCENT_COLOR,
-    transform: "scale(1.03)",
-    boxShadow: `0 5px 15px ${ACCENT_COLOR}60`,
+    fontSize: "1rem",
+    padding: "0.8rem 3rem",
+    boxShadow: "0 10px 25px rgba(27, 48, 34, 0.2)",
   },
 };
 
+// CSS Injection for Animations
+const AnimationStyles = () => (
+  <style>{`
+    @keyframes floatTitle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .product-card:hover img {
+      transform: scale(1.1) rotate(2deg);
+    }
+    .hover-lift {
+      transition: transform 0.3s ease !important;
+    }
+    .hover-lift:hover {
+      transform: translateY(-5px);
+    }
+  `}</style>
+);
+
 // ✨ Hover Handlers
 const handleCardMouseEnter = (e) => {
-  e.currentTarget.style.transform = "translateY(-8px)";
-  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
-  e.currentTarget.querySelector("img").style.transform = "scale(1.03)";
+  e.currentTarget.style.transform = "translateY(-12px)";
+  e.currentTarget.style.boxShadow = "0 30px 50px rgba(45, 106, 79, 0.15)";
 };
 const handleCardMouseLeave = (e) => {
   e.currentTarget.style.transform = "translateY(0)";
   e.currentTarget.style.boxShadow = customStyles.productCard.boxShadow;
-  e.currentTarget.querySelector("img").style.transform = "scale(1)";
 };
-const handleViewDealMouseEnter = (e) =>
-  Object.assign(e.currentTarget.style, customStyles.viewDealButtonHover);
-const handleViewDealMouseLeave = (e) =>
-  Object.assign(e.currentTarget.style, {
-    ...customStyles.viewDealButton,
-    transform: "none",
-    boxShadow: "none",
-  });
-const handleExploreMouseEnter = (e) =>
-  Object.assign(e.currentTarget.style, customStyles.exploreButtonHover);
-const handleExploreMouseLeave = (e) =>
-  Object.assign(e.currentTarget.style, {
-    ...customStyles.exploreButton,
-    transform: "none",
-    boxShadow: customStyles.exploreButton.boxShadow,
-  });
+const handleViewDealMouseEnter = (e) => {
+  e.currentTarget.style.backgroundColor = SALE_COLOR;
+  e.currentTarget.style.borderColor = SALE_COLOR;
+  e.currentTarget.style.transform = "scale(1.02)";
+};
+const handleViewDealMouseLeave = (e) => {
+  e.currentTarget.style.backgroundColor = ACCENT_COLOR;
+  e.currentTarget.style.borderColor = ACCENT_COLOR;
+  e.currentTarget.style.transform = "scale(1)";
+};
 
 // 🧠 Helpers
 const getProductImageSource = (product) => {
@@ -176,32 +168,24 @@ const getProductImageSource = (product) => {
     return product.image;
   if (Array.isArray(product.images) && product.images.length > 0)
     return product.images[0];
-  return "https://placehold.co/300x380/e0e0e0/555?text=NO+IMAGE";
+  return "https://placehold.co/300x380/d8f3dc/1b3022?text=NO+IMAGE";
 };
+
 const calculateDiscount = (price, originalPrice) => {
   if (originalPrice > price)
     return Math.round(((originalPrice - price) / originalPrice) * 100);
   return 0;
 };
-const generateDummyProduct = (index) => {
-  const basePrice = Math.floor(Math.random() * 800) + 1500;
-  const discountFactor = Math.random() * 0.5 + 0.3;
-  const finalPrice = Math.floor(basePrice * discountFactor);
-  const originalPrice =
-    basePrice <= finalPrice
-      ? finalPrice + Math.floor(Math.random() * 500) + 500
-      : basePrice;
-  return {
-    id: `accessory-dummy-${index}`,
-    name: `Stylish Accessory ${index + 1}`,
-    brand: "PREMIUM STYLE",
-    price: finalPrice,
-    originalPrice,
-    image: `https://picsum.photos/seed/accessory${index}/300/300`,
-  };
-};
 
-// 🧩 MAIN COMPONENT
+const generateDummyProduct = (index) => ({
+  id: `acc-dummy-${index}`,
+  name: `Essential Accessory ${index + 1}`,
+  brand: "NATURA LUXE",
+  price: 899,
+  originalPrice: 1599,
+  image: `https://picsum.photos/seed/green${index}/300/300`,
+});
+
 function HomeAccessoriesSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -217,7 +201,6 @@ function HomeAccessoriesSection() {
     const fetchAccessories = async () => {
       setLoading(true);
       try {
-        // 🔥 Use LocalStorage cache
         const cached = localStorage.getItem("accessoriesProducts");
         if (cached) {
           setProducts(JSON.parse(cached));
@@ -225,36 +208,23 @@ function HomeAccessoriesSection() {
           return;
         }
 
-        const categoryName = "Accessories";
-        const productLimit = 4;
         const productsRef = collection(db, "products");
-        const q = query(productsRef, where("category", "==", categoryName));
+        const q = query(productsRef, where("category", "==", "Accessories"));
         const snapshot = await getDocs(q);
 
         let data = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          price: doc.data().price ? Number(doc.data().price) : 499,
-          originalPrice: doc.data().originalPrice
-            ? Number(doc.data().originalPrice)
-            : 999,
+          price: Number(doc.data().price) || 499,
+          originalPrice: Number(doc.data().originalPrice) || 999,
         }));
 
-        // Ensure at least 4
-        while (data.length < productLimit)
-          data.push(generateDummyProduct(data.length));
+        while (data.length < 4) data.push(generateDummyProduct(data.length));
 
-        // Shuffle & limit
-        for (let i = data.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [data[i], data[j]] = [data[j], data[i]];
-        }
-
-        data = data.slice(0, productLimit);
+        data = data.sort(() => 0.5 - Math.random()).slice(0, 4);
         setProducts(data);
         localStorage.setItem("accessoriesProducts", JSON.stringify(data));
       } catch (err) {
-        console.warn("Firebase fetch failed, using dummy products:", err);
         setProducts(Array.from({ length: 4 }, (_, i) => generateDummyProduct(i)));
       } finally {
         setLoading(false);
@@ -264,48 +234,38 @@ function HomeAccessoriesSection() {
   }, []);
 
   return (
-    <Container fluid style={{ backgroundColor: "#f8f9fa" }}>
-      <Container className="py-4" style={customStyles.sectionContainer}>
+    <Container fluid style={{ background: "radial-gradient(circle, #f0fff4 0%, #dcfce7 100%)", padding: "60px 0" }}>
+      <AnimationStyles />
+      <Container style={customStyles.sectionContainer}>
         {/* Header */}
-        <div className="text-center mb-3 mb-md-4">
+        <div className="text-center mb-5">
           <h3 style={customStyles.header}>
-            ACCESSORIZE YOUR LOOK <span style={{ color: ACCENT_COLOR }}>IN STYLE</span>
-            <div style={customStyles.headerUnderline}></div>
+            ACCESSORIES <span style={{ color: ACCENT_COLOR }}>COLLECTION</span>
           </h3>
-          <p className="text-muted mt-2 fs-6 fw-light d-none d-sm-block">
-            Discover premium accessories that elevate every outfit.
+          <p className="text-muted mt-2 fw-light">
+            Eco-conscious luxury items to complete your signature look.
           </p>
         </div>
 
         {loading ? (
-          <div className="text-center py-4">
-            <Spinner animation="border" variant="success" />
-            <p className="mt-2 text-muted fs-6">Loading trending accessories...</p>
+          <div className="text-center py-5">
+            <Spinner animation="grow" variant="success" />
           </div>
         ) : (
           <>
-            <Row xs={2} sm={2} md={3} lg={4} className="g-2 g-md-3 justify-content-center">
+            <Row xs={2} sm={2} md={3} lg={4} className="g-3 g-md-4 justify-content-center">
               {products.map((product) => {
-                const discountPercent = calculateDiscount(
-                  product.price,
-                  product.originalPrice
-                );
+                const discount = calculateDiscount(product.price, product.originalPrice);
                 return (
                   <Col key={product.id}>
-                    <Link
-                      to={`/product/${product.id}`}
-                      className="text-decoration-none d-block"
-                    >
+                    <Link to={`/product/${product.id}`} className="text-decoration-none d-block h-100">
                       <Card
-                        className="h-100 product-card"
                         style={customStyles.productCard}
                         onMouseEnter={handleCardMouseEnter}
                         onMouseLeave={handleCardMouseLeave}
                       >
-                        {discountPercent > 0 && (
-                          <Badge style={customStyles.discountBadge}>
-                            -{discountPercent}% OFF
-                          </Badge>
+                        {discount > 0 && (
+                          <Badge style={customStyles.discountBadge}>-{discount}%</Badge>
                         )}
                         <div style={customStyles.imageContainer(isMobile)}>
                           <LazyLoadImage
@@ -313,46 +273,28 @@ function HomeAccessoriesSection() {
                             alt={product.name}
                             effect="blur"
                             style={customStyles.productImage}
-                            onError={(e) =>
-                              (e.target.src =
-                                "https://placehold.co/300x380/e0e0e0/555?text=Image+Error")
-                            }
                           />
                         </div>
-                        <Card.Body className="text-start p-2 p-md-3 d-flex flex-column">
-                          <p
-                            style={customStyles.brandText}
-                            className="text-uppercase"
-                          >
-                            {product.brand}
-                          </p>
-                          <Card.Title
-                            style={customStyles.title}
-                            className="text-truncate"
-                          >
+                        <Card.Body className="text-start p-3 d-flex flex-column">
+                          <p style={customStyles.brandText}>{product.brand}</p>
+                          <Card.Title style={customStyles.title} className="text-truncate">
                             {product.name}
                           </Card.Title>
-                          <div className="d-flex align-items-baseline justify-content-between mt-auto pt-1 pt-md-2">
-                            <Card.Text style={customStyles.price}>
-                              ₹{product.price}
-                            </Card.Text>
+                          <div className="d-flex align-items-center mt-auto">
+                            <span style={customStyles.price}>₹{product.price}</span>
                             {product.originalPrice > product.price && (
-                              <small
-                                style={customStyles.originalPrice}
-                                className="text-decoration-line-through"
-                              >
+                              <span style={customStyles.originalPrice} className="text-decoration-line-through">
                                 ₹{product.originalPrice}
-                              </small>
+                              </span>
                             )}
                           </div>
                           <Button
                             variant="success"
                             style={customStyles.viewDealButton}
-                            className="w-100 mt-2 text-uppercase"
                             onMouseEnter={handleViewDealMouseEnter}
                             onMouseLeave={handleViewDealMouseLeave}
                           >
-                            View Deal
+                            SHOP NOW
                           </Button>
                         </Card.Body>
                       </Card>
@@ -362,14 +304,11 @@ function HomeAccessoriesSection() {
               })}
             </Row>
 
-            <div className="text-center mt-4 pt-3">
+            <div className="text-center mt-5">
               <Link to="/accessories">
                 <Button
                   style={customStyles.exploreButton}
-                  size="md"
-                  className="fw-bold"
-                  onMouseEnter={handleExploreMouseEnter}
-                  onMouseLeave={handleExploreMouseLeave}
+                  className="hover-lift"
                 >
                   Explore All Accessories →
                 </Button>

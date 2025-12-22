@@ -31,12 +31,12 @@ function OrderConformPage() {
 
   const initialBillingDetails = billingDetails
     ? {
-        fullName: billingDetails.fullName || defaultBillingDetails.fullName,
-        address: billingDetails.address || defaultBillingDetails.address,
-        city: billingDetails.city || defaultBillingDetails.city,
-        pincode: billingDetails.pincode || defaultBillingDetails.pincode,
-        phone: billingDetails.phone || defaultBillingDetails.phone,
-      }
+      fullName: billingDetails.fullName || defaultBillingDetails.fullName,
+      address: billingDetails.address || defaultBillingDetails.address,
+      city: billingDetails.city || defaultBillingDetails.city,
+      pincode: billingDetails.pincode || defaultBillingDetails.pincode,
+      phone: billingDetails.phone || defaultBillingDetails.phone,
+    }
     : defaultBillingDetails;
 
   // Generate order ID consistent with other pages (ORD-...)
@@ -293,4 +293,3 @@ function OrderConformPage() {
 }
 
 export default OrderConformPage;
-  

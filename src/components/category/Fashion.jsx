@@ -25,14 +25,63 @@ const ProductCard = ({ product }) => {
   const productColor =
     product.color || extractColorFromDescription(product.description);
 
+  // Define color mapping for common colors
+  const getColorValue = (colorName) => {
+    const colorMap = {
+      red: "#dc3545",
+      blue: "#0d6efd",
+      green: "#198754",
+      yellow: "#ffc107",
+      black: "#212529",
+      white: "#ffffff",
+      pink: "#d63384",
+      purple: "#6f42c1",
+      orange: "#fd7e14",
+      grey: "#6c757d",
+      gray: "#6c757d",
+      brown: "#795548",
+      navy: "#001f3f",
+      teal: "#20c997",
+      cyan: "#0dcaf0",
+      indigo: "#6610f2",
+      maroon: "#800000",
+      olive: "#808000",
+      lime: "#84cc16",
+      gold: "#ffd700",
+      silver: "#c0c0c0",
+      violet: "#8a2be2",
+      magenta: "#ff00ff",
+      coral: "#ff7f50",
+      turquoise: "#40e0d0",
+      beige: "#f5f5dc",
+      lavender: "#e6e6fa",
+      mint: "#98ff98",
+      peach: "#ffdab9",
+      rose: "#ff007f",
+      skyblue: "#87ceeb",
+      chocolate: "#d2691e",
+      ivory: "#fffff0",
+      khaki: "#f0e68c",
+      plum: "#dda0dd",
+      salmon: "#fa8072",
+      tan: "#d2b48c",
+      wine: "#722f37",
+    };
+
+    const normalizedColor = colorName.toLowerCase().trim();
+    return colorMap[normalizedColor] || "#e9ecef"; // Default light gray
+  };
+
+  const borderColor = getColorValue(productColor);
+
   const cardStyle = {
-    border: "none",
+    border: `3px solid ${borderColor}`,
     borderRadius: "16px",
     overflow: "hidden",
     backgroundColor: "#ffffff",
     boxShadow: isHovered
-      ? "0 10px 25px rgba(0,0,0,0.15)"
-      : "0 4px 12px rgba(0,0,0,0.1)",
+      ? `0 10px 25px ${borderColor}40`
+      : `0 4px 12px ${borderColor}20`,
     transform: isHovered ? "translateY(-8px) scale(1.03)" : "scale(1)",
     transition: "all 0.3s ease",
   };
@@ -81,9 +130,7 @@ const ProductCard = ({ product }) => {
             </Card.Title>
             <Card.Text className="text-secondary small mb-2">
               Color:{" "}
-              <strong
-                style={{ color: productColor !== "N/A" ? "black" : "grey" }}
-              >
+              <strong style={{ color: borderColor }}>
                 {productColor}
               </strong>
             </Card.Text>
@@ -279,7 +326,7 @@ function Fashion() {
           )}
 
           {!hasMore && (
-            <p className="text-muted mt-4">🎉 You’ve reached the end!</p>
+            <p className="text-muted mt-4">🎉 You've reached the end!</p>
           )}
         </>
       ) : (

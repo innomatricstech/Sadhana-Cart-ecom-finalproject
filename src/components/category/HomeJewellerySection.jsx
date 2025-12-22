@@ -15,246 +15,162 @@ import { Link } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
-// 🎨 STYLE CONSTANTS
-const PRIMARY_TEXT_COLOR = "#101010";
-const ACCENT_COLOR = "#198754";
-const SALE_COLOR = "#dc3545";
+// 🎨 UPDATED STYLE CONSTANTS (Light Maroon/Rosewood Theme)
+const PRIMARY_MAROON = "#800020";    // Classic Maroon
+const LIGHT_MAROON = "#FADADD";      // Pale Rose / Light Maroon background
+const ACCENT_GOLD = "#D4AF37";       // Gold pairs beautifully with Maroon
 const WHITE_COLOR = "#FFFFFF";
+const TEXT_DARK = "#3A000C";         // Very deep maroon for text
 
-// 🎨 CUSTOM STYLES
 const customStyles = {
+  mainWrapper: {
+    backgroundColor: "#F4E1E1", // Soft Dusty Rose / Light Maroon hue
+    padding: "60px 0",
+  },
   sectionContainer: {
     backgroundColor: WHITE_COLOR,
-    borderRadius: "25px",
-    padding: "3rem 1rem",
-    boxShadow: "0 15px 50px rgba(0, 0, 0, 0.08)",
+    borderRadius: "40px",
+    padding: "3.5rem 1.5rem",
+    boxShadow: "0 25px 50px rgba(128, 0, 32, 0.1)",
+    border: "1px solid #E8D5D8",
   },
   productCard: {
-    border: "1px solid #e9ecef",
-    borderRadius: "15px",
+    border: "none",
+    borderRadius: "20px",
     overflow: "hidden",
-    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
     backgroundColor: WHITE_COLOR,
+    transition: "all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)",
     cursor: "pointer",
     height: "100%",
     position: "relative",
+    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
   },
   imageContainer: (isMobile) => ({
     width: "100%",
-    height: isMobile ? "180px" : "220px",
+    height: isMobile ? "180px" : "240px",
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#FFF9F9", // Slight pinkish white for the jewelry
   }),
   productImage: {
-    maxWidth: "100%",
-    maxHeight: "100%",
+    maxWidth: "85%",
+    maxHeight: "85%",
     objectFit: "contain",
-    transition: "transform 0.3s ease-in-out",
-    padding: "3px",
+    transition: "transform 0.5s ease",
   },
   discountBadge: {
     position: "absolute",
-    top: "8px",
-    right: "8px",
-    backgroundColor: SALE_COLOR,
+    top: "12px",
+    left: "12px",
+    backgroundColor: PRIMARY_MAROON,
     color: WHITE_COLOR,
-    padding: "0.2rem 0.5rem",
-    borderRadius: "50px",
-    fontSize: "0.75rem",
-    fontWeight: "900",
+    padding: "0.4rem 0.8rem",
+    borderRadius: "8px",
+    fontSize: "0.7rem",
+    fontWeight: "800",
     zIndex: 10,
-    boxShadow: "0 2px 5px rgba(220, 53, 69, 0.3)",
-    letterSpacing: "0.5px",
   },
   brandText: {
-    fontSize: "0.75rem",
-    fontWeight: "600",
-    color: ACCENT_COLOR,
-    marginBottom: "1px",
-    letterSpacing: "0.5px",
+    fontSize: "0.7rem",
+    fontWeight: "700",
+    color: PRIMARY_MAROON,
+    letterSpacing: "2px",
+    textTransform: "uppercase",
   },
   title: {
-    fontSize: "1rem",
+    fontSize: "1.1rem",
     fontWeight: "700",
-    color: PRIMARY_TEXT_COLOR,
-    marginBottom: "4px",
+    color: TEXT_DARK,
+    marginBottom: "8px",
   },
   price: {
     fontSize: "1.4rem",
+    fontWeight: "800",
+    color: PRIMARY_MAROON,
+  },
+  header: {
+    fontSize: "clamp(2rem, 5vw, 2.5rem)",
     fontWeight: "900",
-    color: SALE_COLOR,
+    color: TEXT_DARK,
     letterSpacing: "-0.5px",
   },
-  originalPrice: { fontSize: "0.8rem", color: "#adb5bd" },
-  header: {
-    fontSize: "2.5rem",
-    fontWeight: "900",
-    color: PRIMARY_TEXT_COLOR,
-    letterSpacing: "-1.5px",
-    display: "inline-block",
-    position: "relative",
-    paddingBottom: "12px",
-  },
-  headerUnderline: {
-    content: '""',
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100px",
-    height: "3px",
-    backgroundColor: ACCENT_COLOR,
-    borderRadius: "2px",
-  },
   viewDealButton: {
-    transition: "all 0.3s ease",
-    borderRadius: "6px",
+    borderRadius: "12px",
     fontSize: "0.9rem",
     fontWeight: "700",
-    backgroundColor: ACCENT_COLOR,
-    borderColor: ACCENT_COLOR,
-    padding: "0.4rem 0.8rem",
-  },
-  viewDealButtonHover: {
-    backgroundColor: SALE_COLOR,
-    borderColor: SALE_COLOR,
-    transform: "translateY(-2px)",
-    boxShadow: `0 5px 15px ${SALE_COLOR}80`,
+    backgroundColor: PRIMARY_MAROON,
+    border: "none",
+    padding: "0.7rem",
+    transition: "all 0.3s ease",
   },
   exploreButton: {
-    backgroundColor: PRIMARY_TEXT_COLOR,
-    color: "white",
-    borderColor: PRIMARY_TEXT_COLOR,
-    transition: "all 0.3s ease-in-out",
+    backgroundColor: "transparent",
+    color: PRIMARY_MAROON,
+    border: `2.5px solid ${PRIMARY_MAROON}`,
     borderRadius: "50px",
     fontSize: "1.1rem",
-    padding: "0.6rem 3rem",
-    boxShadow: `0 8px 25px ${PRIMARY_TEXT_COLOR}40`,
-  },
-  exploreButtonHover: {
-    backgroundColor: ACCENT_COLOR,
-    borderColor: ACCENT_COLOR,
-    transform: "scale(1.03)",
-    boxShadow: `0 5px 15px ${ACCENT_COLOR}60`,
+    padding: "0.8rem 3.5rem",
+    fontWeight: "700",
+    transition: "all 0.3s ease",
   },
 };
 
-// 🧩 HOVER EFFECTS
-const handleCardMouseEnter = (e) => {
-  e.currentTarget.style.transform = "translateY(-8px)";
-  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
-  e.currentTarget.querySelector("img").style.transform = "scale(1.03)";
-};
-const handleCardMouseLeave = (e) => {
-  e.currentTarget.style.transform = "translateY(0)";
-  e.currentTarget.style.boxShadow = customStyles.productCard.boxShadow;
-  e.currentTarget.querySelector("img").style.transform = "scale(1)";
-};
-const handleViewDealMouseEnter = (e) =>
-  Object.assign(e.currentTarget.style, customStyles.viewDealButtonHover);
-const handleViewDealMouseLeave = (e) =>
-  Object.assign(e.currentTarget.style, {
-    ...customStyles.viewDealButton,
-    transform: "none",
-    boxShadow: "none",
-  });
-const handleExploreMouseEnter = (e) =>
-  Object.assign(e.currentTarget.style, customStyles.exploreButtonHover);
-const handleExploreMouseLeave = (e) =>
-  Object.assign(e.currentTarget.style, {
-    ...customStyles.exploreButton,
-    transform: "none",
-    boxShadow: customStyles.exploreButton.boxShadow,
-  });
+// ✨ CUSTOM ANIMATIONS (CSS-in-JS)
+const MaroonAnimations = () => (
+  <style>{`
+    @keyframes entranceFade {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .jewellery-entrance {
+      animation: entranceFade 0.8s ease-out forwards;
+    }
+    /* Glimmer effect on hover */
+    .jewel-card:hover {
+      transform: translateY(-12px);
+      box-shadow: 0 20px 40px rgba(128, 0, 32, 0.15) !important;
+    }
+    .jewel-card:hover img {
+      transform: scale(1.1);
+    }
+    /* Soft button pulse */
+    .btn-maroon-hover:hover {
+      background-color: ${TEXT_DARK} !important;
+      box-shadow: 0 8px 20px rgba(58, 0, 12, 0.3);
+      transform: scale(1.02);
+    }
+    .explore-maroon:hover {
+      background-color: ${PRIMARY_MAROON} !important;
+      color: white !important;
+    }
+  `}</style>
+);
 
-// 🖼️ Helper Functions
-const getProductImageSource = (product) => {
-  if (typeof product.image === "string" && product.image.trim() !== "")
-    return product.image;
-  if (Array.isArray(product.images) && product.images.length > 0)
-    return product.images[0];
-  return "https://placehold.co/300x380/e0e0e0/555?text=NO+IMAGE";
-};
-const calculateDiscount = (price, originalPrice) => {
-  if (originalPrice > price)
-    return Math.round(((originalPrice - price) / originalPrice) * 100);
-  return 0;
-};
-const generateDummyProduct = (index) => {
-  const basePrice = Math.floor(Math.random() * 800) + 1500;
-  const discountFactor = Math.random() * 0.5 + 0.3;
-  const finalPrice = Math.floor(basePrice * discountFactor);
-  const originalPrice =
-    basePrice <= finalPrice
-      ? finalPrice + Math.floor(Math.random() * 500) + 500
-      : basePrice;
-  return {
-    id: `jewel-dummy-${index}`,
-    name: `Elegant Jewellery ${index + 1}`,
-    brand: "TRENDY COLLECTION",
-    price: finalPrice,
-    originalPrice,
-    image: `https://picsum.photos/seed/jewel${index}/300/300`,
-  };
-};
+const calculateDiscount = (p, op) => (op > p ? Math.round(((op - p) / op) * 100) : 0);
 
-// 🌟 MAIN COMPONENT
 function HomeJewellerySection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 576);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
     const fetchJewellery = async () => {
-      setLoading(true);
       try {
-        // Check localStorage cache
-        const cached = localStorage.getItem("jewelleryProducts");
-        if (cached) {
-          setProducts(JSON.parse(cached));
-          setLoading(false);
-          return;
-        }
-
-        const categoryName = "Jewellery";
-        const productLimit = 4;
-        const productsRef = collection(db, "products");
-        const q = query(productsRef, where("category", "==", categoryName));
+        const q = query(collection(db, "products"), where("category", "==", "Jewellery"));
         const snapshot = await getDocs(q);
-
-        let data = snapshot.docs.map((doc) => ({
+        let data = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          price: doc.data().price ? Number(doc.data().price) : 1499,
-          originalPrice: doc.data().originalPrice
-            ? Number(doc.data().originalPrice)
-            : 2499,
+          price: Number(doc.data().price) || 4999,
+          originalPrice: Number(doc.data().originalPrice) || 7999
         }));
-
-        while (data.length < productLimit) data.push(generateDummyProduct(data.length));
-
-        // Shuffle & limit
-        for (let i = data.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [data[i], data[j]] = [data[j], data[i]];
-        }
-        data = data.slice(0, productLimit);
-
-        setProducts(data);
-        localStorage.setItem("jewelleryProducts", JSON.stringify(data));
+        setProducts(data.sort(() => 0.5 - Math.random()).slice(0, 4));
       } catch (err) {
-        console.warn("Firebase fetch failed, using dummy products:", err);
-        setProducts(Array.from({ length: 4 }, (_, i) => generateDummyProduct(i)));
+        setProducts(Array.from({ length: 4 }, (_, i) => ({
+          id: i, name: "Elegant Gold Necklace", brand: "PREMIUM CRAFT", price: 5499, originalPrice: 8999
+        })));
       } finally {
         setLoading(false);
       }
@@ -263,85 +179,53 @@ function HomeJewellerySection() {
   }, []);
 
   return (
-    <Container fluid style={{ backgroundColor: "#f8f9fa" }}>
-      <Container className="py-4" style={customStyles.sectionContainer}>
+    <div style={customStyles.mainWrapper}>
+      <MaroonAnimations />
+      <Container className="jewellery-entrance" style={customStyles.sectionContainer}>
         {/* Header */}
-        <div className="text-center mb-3 mb-md-4">
+        <div className="text-center mb-5">
           <h3 style={customStyles.header}>
-            ELEGANT <span style={{ color: ACCENT_COLOR }}>JEWELLERY SALE</span>
-            <div style={customStyles.headerUnderline}></div>
+            ROYAL <span style={{ color: PRIMARY_MAROON }}>JEWELLERY</span>
           </h3>
-          <p className="text-muted mt-2 fs-6 fw-light d-none d-sm-block">
-            Discover stunning jewellery that adds sparkle to your style ✨
+          <p className="text-muted mt-2 d-none d-sm-block" style={{ fontStyle: 'italic' }}>
+            Curated pieces that define grace and timeless beauty.
           </p>
         </div>
 
         {loading ? (
-          <div className="text-center py-4">
-            <Spinner animation="border" variant="success" />
-            <p className="mt-2 text-muted fs-6">Loading beautiful jewellery...</p>
-          </div>
+          <div className="text-center py-5"><Spinner animation="border" style={{ color: PRIMARY_MAROON }} /></div>
         ) : (
           <>
-            <Row xs={2} sm={2} md={3} lg={4} className="g-2 g-md-3 justify-content-center">
+            <Row xs={2} sm={2} md={3} lg={4} className="g-3 g-md-4">
               {products.map((product) => {
-                const discountPercent = calculateDiscount(
-                  product.price,
-                  product.originalPrice
-                );
+                const discount = calculateDiscount(product.price, product.originalPrice);
                 return (
                   <Col key={product.id}>
-                    <Link to={`/product/${product.id}`} className="text-decoration-none d-block">
-                      <Card
-                        className="h-100 product-card"
-                        style={customStyles.productCard}
-                        onMouseEnter={handleCardMouseEnter}
-                        onMouseLeave={handleCardMouseLeave}
-                      >
-                        {discountPercent > 0 && (
-                          <Badge style={customStyles.discountBadge}>
-                            -{discountPercent}% OFF
-                          </Badge>
-                        )}
+                    <Link to={`/product/${product.id}`} className="text-decoration-none d-block h-100">
+                      <Card className="jewel-card" style={customStyles.productCard}>
+                        {discount > 0 && <Badge style={customStyles.discountBadge}>{discount}% OFF</Badge>}
                         <div style={customStyles.imageContainer(isMobile)}>
                           <LazyLoadImage
-                            src={getProductImageSource(product)}
+                            src={product.image || product.images?.[0]}
                             alt={product.name}
                             effect="blur"
                             style={customStyles.productImage}
-                            onError={(e) =>
-                              (e.target.src =
-                                "https://placehold.co/300x380/e0e0e0/555?text=Image+Error")
-                            }
                           />
                         </div>
-                        <Card.Body className="text-start p-2 p-md-3 d-flex flex-column">
-                          <p style={customStyles.brandText} className="text-uppercase">
-                            {product.brand || "Jewellery Collection"}
-                          </p>
-                          <Card.Title style={customStyles.title} className="text-truncate">
-                            {product.name}
-                          </Card.Title>
-                          <div className="d-flex align-items-baseline justify-content-between mt-auto pt-1 pt-md-2">
-                            <Card.Text style={customStyles.price}>₹{product.price}</Card.Text>
-                            {product.originalPrice > product.price && (
-                              <small
-                                style={customStyles.originalPrice}
-                                className="text-decoration-line-through"
-                              >
-                                ₹{product.originalPrice}
-                              </small>
-                            )}
+                        <Card.Body className="p-3 d-flex flex-column text-center">
+                          <small style={customStyles.brandText}>{product.brand || "LUXURY PIECE"}</small>
+                          <Card.Title style={customStyles.title} className="text-truncate">{product.name}</Card.Title>
+                          <div className="mt-auto">
+                            <div className="mb-3">
+                              <span style={customStyles.price}>₹{product.price}</span>
+                              {product.originalPrice > product.price && (
+                                <small className="ms-2 text-muted text-decoration-line-through">₹{product.originalPrice}</small>
+                              )}
+                            </div>
+                            <Button style={customStyles.viewDealButton} className="w-100 btn-maroon-hover">
+                               SHOP NOW
+                            </Button>
                           </div>
-                          <Button
-                            variant="success"
-                            style={customStyles.viewDealButton}
-                            className="w-100 mt-2 text-uppercase"
-                            onMouseEnter={handleViewDealMouseEnter}
-                            onMouseLeave={handleViewDealMouseLeave}
-                          >
-                            View Deal
-                          </Button>
                         </Card.Body>
                       </Card>
                     </Link>
@@ -350,23 +234,17 @@ function HomeJewellerySection() {
               })}
             </Row>
 
-            <div className="text-center mt-4 pt-3">
+            <div className="text-center mt-5">
               <Link to="/jewellery">
-                <Button
-                  style={customStyles.exploreButton}
-                  size="md"
-                  className="fw-bold"
-                  onMouseEnter={handleExploreMouseEnter}
-                  onMouseLeave={handleExploreMouseLeave}
-                >
-                  Explore All Jewellery →
+                <Button style={customStyles.exploreButton} className="explore-maroon">
+                  View Full Gallery →
                 </Button>
               </Link>
             </div>
           </>
         )}
       </Container>
-    </Container>
+    </div>
   );
 }
 
