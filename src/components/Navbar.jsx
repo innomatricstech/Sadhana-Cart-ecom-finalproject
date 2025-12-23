@@ -190,7 +190,11 @@ const SearchBar = () => {
   }, []);
 
   const saveRecentSearch = (term) => {
-    let updated = [term, ...recentSearches.filter(t => t !== term)];
+    if (!term.trim()) return;
+    
+    let updated = [term, ...recentSearches.filter(t => 
+      t.toLowerCase() !== term.toLowerCase()
+    )];
     updated = updated.slice(0, 5);
     setRecentSearches(updated);
     localStorage.setItem("recentSearches", JSON.stringify(updated));
@@ -211,6 +215,35 @@ const SearchBar = () => {
     navigate(`/search-results?q=${encodeURIComponent(searchTerm)}`);
   };
 
+  /* ---------------- DELETE SINGLE RECENT SEARCH ---------------- */
+  const deleteRecentSearch = (term, e) => {
+    e.stopPropagation();
+    const updated = recentSearches.filter(t => 
+      t.toLowerCase() !== term.toLowerCase()
+    );
+    setRecentSearches(updated);
+    localStorage.setItem("recentSearches", JSON.stringify(updated));
+  };
+
+  /* ---------------- CLEAR ALL RECENT SEARCHES ---------------- */
+  const clearAllRecentSearches = () => {
+    setRecentSearches([]);
+    localStorage.removeItem("recentSearches");
+  };
+
+  /* ---------------- CLEAR SEARCH TEXT ---------------- */
+  const clearSearchText = () => {
+    setSearchTerm("");
+    setSuggestions([]);
+  };
+
+  /* ---------------- RECENT SEARCH CLICK HANDLER ---------------- */
+  const handleRecentSearchClick = (term) => {
+    setSearchTerm(term);
+    fetchSearchData(term);
+    setShowDropdown(true);
+  };
+
   return (
     <div className="position-relative w-100" ref={dropdownRef}>
       <div className="input-group">
@@ -223,6 +256,19 @@ const SearchBar = () => {
           onFocus={() => setShowDropdown(true)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
+        
+        {/* X Button - shows only when typing, positioned before search button */}
+        {searchTerm && (
+          <Button 
+            variant="outline-secondary" 
+            className="border-start-0 border-end-0 rounded-0 px-3"
+            onClick={clearSearchText}
+            style={{ borderColor: '#dee2e6' }}
+          >
+            <i className="fas fa-times"></i>
+          </Button>
+        )}
+        
         <Button 
           variant="warning" 
           className="rounded-end-pill px-4"
@@ -289,27 +335,39 @@ const SearchBar = () => {
             <>
               {recentSearches.length > 0 && (
                 <>
-                  <div className="px-3 py-2 text-muted small fw-bold bg-light">
-                    <i className="fas fa-history me-2"></i> RECENT SEARCHES
+                  <div className="px-3 py-2 text-muted small fw-bold bg-light d-flex justify-content-between align-items-center">
+                    <span>
+                      <i className="fas fa-history me-2"></i> RECENT SEARCHES
+                    </span>
+                    <button 
+                      className="btn btn-sm btn-link text-danger p-0"
+                      onClick={clearAllRecentSearches}
+                    >
+                      Clear all
+                    </button>
                   </div>
                   {recentSearches.map((term, i) => (
                     <div
                       key={i}
-                      className="suggestion-item px-3 py-2"
-                      onClick={() => {
-                        setSearchTerm(term);
-                        fetchSearchData(term);
-                      }}
+                      className="suggestion-item px-3 py-2 d-flex justify-content-between align-items-center"
+                      onClick={() => handleRecentSearchClick(term)}
                     >
-                      <i className="fas fa-clock me-2 text-muted"></i> {term}
+                      <div className="d-flex align-items-center">
+                        <i className="fas fa-clock me-2 text-muted"></i> 
+                        <span>{term}</span>
+                      </div>
+                      <button 
+                        className="btn btn-sm btn-link text-danger p-0"
+                        onClick={(e) => deleteRecentSearch(term, e)}
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
                     </div>
                   ))}
                 </>
               )}
               
-              <div className="px-3 py-2 text-muted small fw-bold bg-light">
-                <i className="fas fa-fire me-2 text-warning"></i> TRENDING NOW
-              </div>
+               
               {trending.map((p) => (
                 <div
                   key={p.id}
@@ -456,7 +514,6 @@ export default function Header() {
 
                 {/* Cart with Badge */}
                 <Button 
-                  variant="warning" 
                   size="sm" 
                   className="position-relative rounded-pill px-3"
                   onClick={goToCart}
@@ -543,7 +600,7 @@ export default function Header() {
                       Hi, {currentUser.displayName || currentUser.email.split('@')[0]}
                     </div>
                     <Button 
-                      variant="outline-dark" 
+                      variant="danger" 
                       size="sm" 
                       onClick={handleLogout}
                       className="border-1"

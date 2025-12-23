@@ -1,82 +1,430 @@
+/* Banner.css - White Background with Attractive Design */
+
+/* Base Container */
 .banner-container {
-  background: #e3e5e5;
-  padding: 2rem 1rem; /* Default padding for desktop/large screens */
-  border-radius: 0px 0px 30px 40px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+  position: relative;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 24px;
+  margin: 2rem auto;
+  max-width: 1200px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* CAROUSEL FULL WIDTH ADJUSTMENT */
-/* This ensures the carousel spans the full width of the parent's content area */
-.carousel-custom {
-  width: 100%;
+/* Loading State */
+.banner-loading {
+  text-align: center;
+  padding: 4rem;
+  color: #666;
 }
 
-/* Banner Text Styles (if uncommented in JS) */
-.banner-text h2 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 0.5rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(102, 126, 234, 0.1);
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
 }
 
-.banner-text p {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 1.5rem;
-}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
 
-/* Carousel Image Styles (Desktop/Default) */
-.carousel-custom .carousel-item img {
-  border-radius: 10px;
-  /* Fixed height for desktop/larger screens */
-  height: 300px;
-  /* object-fit: contain;  */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-  filter: invert(1);
-}
-
-/* ------------------------------------------- */
-/* Media Queries for Responsiveness */
-/* ------------------------------------------- */
-
-/* Standard Tablet/Smaller Desktop (up to 992px) */
-@media (max-width: 992px) {
-  .carousel-custom .carousel-item img {
-    /* Slightly smaller height on tablets */
-    height: 250px; 
+  100% {
+    transform: rotate(360deg);
   }
 }
 
-/* Standard Mobile Devices (up to 768px) */
+/* No Banners State */
+.no-banners {
+  text-align: center;
+  padding: 4rem;
+  color: #666;
+  background: #f8f9fa;
+  border-radius: 16px;
+}
+
+.no-banners-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Carousel Container - Reduced Height */
+.banner-carousel {
+  position: relative;
+  width: 100%;
+  height: 400px; /* Reduced from 500px to 400px */
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Images Container */
+.banner-images {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.banner-image-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.banner-image-wrapper.active {
+  opacity: 1;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.8s ease;
+}
+
+.banner-image-wrapper.active .banner-img {
+  transform: scale(1.02);
+}
+
+/* Gradient Overlay - Modern and Subtle */
+.gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 40%,
+      rgba(0, 0, 0, 0.1) 70%,
+      transparent 100%);
+}
+
+/* Content */
+.banner-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 2.5rem; /* Slightly reduced padding */
+  display: flex;
+  align-items: center;
+}
+
+.content-wrapper {
+  max-width: 500px;
+  transform: translateY(0);
+  transition: transform 0.8s ease;
+}
+
+.banner-image-wrapper.active .content-wrapper {
+  animation: slideUp 0.8s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.banner-title {
+  font-size: 2.5rem; /* Slightly reduced font size */
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.8rem; /* Reduced margin */
+  line-height: 1.2;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
+}
+
+.banner-description {
+  font-size: 1.1rem; /* Slightly reduced font size */
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin-bottom: 1.5rem; /* Reduced margin */
+  font-weight: 400;
+}
+
+/* CTA Buttons */
+.banner-cta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem; /* Reduced margin */
+}
+
+.shop-now-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 24px; /* Reduced padding */
+  border-radius: 50px;
+  font-size: 0.95rem; /* Slightly reduced font size */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.shop-now-btn:hover {
+  background: #5a6fd8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.explore-btn {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  padding: 10px 24px; /* Reduced padding */
+  border-radius: 50px;
+  font-size: 0.95rem; /* Slightly reduced font size */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.explore-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
+/* Navigation Buttons */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-nav:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-nav.prev {
+  left: 24px;
+}
+
+.carousel-nav.next {
+  right: 24px;
+}
+
+.carousel-nav svg {
+  stroke: #667eea;
+}
+
+/* Indicators */
+.carousel-indicators {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: white;
+  transform: scale(1.3);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+}
+
+/* Counter */
+.slide-counter {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 20px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.current-index {
+  color: #667eea;
+  font-size: 1.2rem;
+}
+
+.counter-divider {
+  margin: 0 4px;
+  opacity: 0.6;
+}
+
+.total-slides {
+  opacity: 0.9;
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.4s ease;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
   .banner-container {
-    /* Reduced horizontal padding to allow more space for the full-width carousel */
-    padding: 1.5rem 0.5rem; 
-    border-radius: 0px 0px 20px 20px;
-  }
-  
-  .banner-text h2 {
-    font-size: 1.8rem;
+    margin: 1rem;
+    padding: 1rem;
+    border-radius: 16px;
   }
 
-  .banner-text p {
+  .banner-carousel {
+    height: 350px; /* Adjusted for mobile */
+  }
+
+  .banner-content {
+    padding: 2rem;
+  }
+
+  .banner-title {
+    font-size: 2rem; /* Adjusted for mobile */
+  }
+
+  .banner-description {
     font-size: 1rem;
   }
 
-  .carousel-custom .carousel-item img {
-    height: 180px; 
+  .carousel-nav {
+    width: 48px;
+    height: 48px;
+  }
+
+  .carousel-nav.prev {
+    left: 16px;
+  }
+
+  .carousel-nav.next {
+    right: 16px;
+  }
+
+  .banner-cta {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .shop-now-btn,
+  .explore-btn {
+    width: 100%;
+    max-width: 200px;
   }
 }
 
-/* Smaller Mobile Devices (up to 576px) */
-@media (max-width: 576px) {
-  .carousel-custom .carousel-item img {
-    height: 150px; 
+@media (max-width: 480px) {
+  .banner-carousel {
+    height: 300px; /* Adjusted for small mobile */
   }
+
+  .banner-content {
+    padding: 1.5rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .content-wrapper {
+    max-width: 100%;
+  }
+
+  .banner-title {
+    font-size: 1.6rem; /* Further reduced for small screens */
+  }
+
+  .slide-counter {
+    top: 16px;
+    right: 16px;
+    font-size: 0.9rem;
+    padding: 6px 16px;
+  }
+
+  .carousel-indicators {
+    bottom: 16px;
+  }
+
+  .indicator {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Animation for banner entrance */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.banner-container {
+  animation: fadeIn 0.8s ease-out;
 }

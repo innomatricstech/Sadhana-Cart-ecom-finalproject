@@ -349,7 +349,7 @@ function PhotoFrame() {
 
           {!hasMore && (
             <p className="text-muted mt-4 p-3 border-top">
-              🎉 **You've reached the end of the {categoryName} catalog!**
+              refresh the website
             </p>
           )}
         </>

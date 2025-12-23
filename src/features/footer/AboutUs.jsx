@@ -1,103 +1,121 @@
-import React from 'react';
-import './AboutUs.css';
+import React from "react";
+import "./AboutUs.css";
+import aboutImg from "../../Images/aboutusimg1.jpg";
 
 function AboutUs() {
   const teamMembers = [
     { name: "Sadhaka Anand", title: "Founder & Spiritual Visionary" },
-    { name: "Priya Sharma", title: "Curator of Ethical Products" },
-    { name: "Rahul Verma", title: "Operations & Logistics" },
-    { name: "Meera Iyer", title: "Community Relations" }
+    { name: "Priya Sharma", title: "Ethical Product Curator" },
+    { name: "Rahul Verma", title: "Operations & Fulfillment" },
+    { name: "Meera Iyer", title: "Community & Support" },
   ];
 
   return (
     <div className="about-container" id="top">
-      {/* Header with Spiritual Theme */}
-      <header className="about-header-bg" style={{ backgroundColor: '#fdf2e9' }}>
-        <div className="container about-header-content">
-          <i className="about-icon fas fa-om" style={{ color: '#d35400' }}></i>
-          <h1 style={{ color: '#5d4037' }}>The Essence of Sadhana</h1>
-          <p className="header-subtitle" style={{ color: '#8d6e63' }}>Curating Purity for Your Spiritual Journey</p>
+      {/* ================= HEADER ================= */}
+      <header className="about-header-bg">
+        <div className="container text-center">
+          <h1 className="about-title">The Essence of Sadhana</h1>
+          <p className="about-subtitle">
+            Conscious Products. Trusted Shopping. Meaningful Living.
+          </p>
         </div>
       </header>
 
-      <div className="container">
-        <main className="about-main-content">
-          <div className="about-intro text-center">
-            <h2 className="main-policy-title">Welcome to Sadhana Cart</h2>
-            <p className="lead">More than an e-commerce platform, we are a bridge to a more mindful and conscious lifestyle.</p>
-            <p>At Sadhana Cart, we believe that every product you bring into your home should support your physical well-being and spiritual growth.</p>
+      <div className="container about-main-content">
+        {/* ================= IMAGE + CONTENT ================= */}
+        <div className="row align-items-center about-section">
+          <div className="col-lg-6 mb-4">
+            <img
+              src={aboutImg}
+              alt="Sadhana Cart"
+              className="about-hero-image"
+            />
           </div>
 
-          {/* Mission Box */}
-          <div className="about-mission-box box-highlight fade-in-up">
-            <div className="d-flex align-items-center">
-              <i className="fas fa-leaf mission-icon me-3" style={{ color: '#27ae60' }}></i>
-              <div>
-                <h3 className="highlight-title">Our Sacred Mission</h3>
-                <p className="mb-0">
-                  To provide seekers with authentic, ethically sourced, and high-quality spiritual tools and natural products that enhance their daily practice.
-                </p>
-              </div>
+          <div className="col-lg-6">
+            <h2 className="section-title">About Sadhana Cart</h2>
+            <p className="lead-text">
+              A conscious e-commerce platform built on trust, quality, and
+              ethical sourcing.
+            </p>
+            <p className="paragraph">
+              Sadhana Cart curates spiritual essentials, wellness products, and
+              natural goods with a focus on authenticity and simplicity. Every
+              product is carefully selected to support mindful living.
+            </p>
+
+            <div className="info-card">
+              <h4>Our Mission</h4>
+              <p>
+                To provide ethically sourced, high-quality products through a
+                reliable online marketplace.
+              </p>
+            </div>
+
+            <div className="info-card">
+              <h4>Our Vision</h4>
+              <p>
+                To become a trusted global ecommerce destination blending
+                tradition with modern technology.
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* Vision Box */}
-          <div className="about-vision-box box-highlight fade-in-up">
-            <div className="d-flex align-items-center">
-              <i className="fas fa-sun vision-icon me-3" style={{ color: '#f1c40f' }}></i>
-              <div>
-                <h3 className="highlight-title">Our Vision</h3>
-                <p className="mb-0">
-                  To become the global cornerstone for conscious living, where tradition meets modern convenience without compromising on purity.
-                </p>
-              </div>
+        {/* ================= VALUE PROPOSITION ================= */}
+        <div className="about-section">
+          <h2 className="section-title text-center">
+            What Makes Us Different
+          </h2>
+
+          <div className="row text-center mt-4">
+            <div className="col-md-3">
+              <div className="feature-box">Verified Products</div>
+            </div>
+            <div className="col-md-3">
+              <div className="feature-box">Secure Checkout</div>
+            </div>
+            <div className="col-md-3">
+              <div className="feature-box">Ethical Sourcing</div>
+            </div>
+            <div className="col-md-3">
+              <div className="feature-box">Fast Delivery</div>
             </div>
           </div>
+        </div>
 
-          {/* Value Proposition */}
-          <div className="about-offer-box fade-in-up">
-            <h3 className="offer-title">The Sadhana Standard</h3>
-            <ul className="offer-list">
-              <li><i className="fas fa-heart me-2"></i> <strong>Sustainably Sourced:</strong> Products that respect the Earth.</li>
-              <li><i className="fas fa-vihara me-2"></i> <strong>Traditional Authenticity:</strong> Sourced directly from artisans and ashrams.</li>
-              <li><i className="fas fa-shield-alt me-2"></i> <strong>Uncompromising Purity:</strong> 100% natural and chemical-free selections.</li>
-              <li><i className="fas fa-hands-helping me-2"></i> <strong>Giving Back:</strong> A portion of every sale supports spiritual education.</li>
-            </ul>
-          </div>
+        {/* ================= TEAM ================= */}
+        <div className="about-section text-center">
+          <h2 className="section-title">Meet Our Team</h2>
+          <p className="paragraph">
+            Dedicated professionals working behind the scenes
+          </p>
 
-          {/* Team Section */}
-          <div className="team-section text-center mt-5">
-            <h2 className="team-heading">The Hearts Behind the Cart</h2>
-            <p className="team-subtitle">A team dedicated to serving the community of seekers</p>
-            <div className="row justify-content-center mt-4">
-              {teamMembers.map((member, index) => (
-                <div key={index} className="col-lg-3 col-md-6 col-sm-6 mb-4">
-                  <div className="team-member animated-card" style={{ animationDelay: `${index * 0.1}s`, borderTop: '4px solid #d35400' }}>
-                    <div className="team-circle-img">
-                      <i className="fas fa-user-circle team-placeholder" style={{ color: '#d35400' }}></i> 
-                    </div>
-                    <h4 className="member-name">{member.name}</h4>
-                    <p className="member-title">{member.title}</p>
-                  </div>
+          <div className="row mt-4">
+            {teamMembers.map((member, index) => (
+              <div key={index} className="col-lg-3 col-md-6 mb-4">
+                <div className="team-card">
+                  <i className="fas fa-user-circle team-icon"></i>
+                  <h5>{member.name}</h5>
+                  <p>{member.title}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Call to Action */}
-          <div className="join-journey-box fade-in-up mt-5" style={{ background: 'linear-gradient(135deg, #d35400 0%, #e67e22 100%)' }}>
-            <i className="fas fa-lotus join-icon"></i>
-            <h3>Walk the Path With Us</h3>
-            <p>Discover products designed to bring peace, health, and harmony to your life.</p>
-            <button className="btn join-btn-primary" style={{ backgroundColor: '#fff', color: '#d35400', fontWeight: 'bold' }}>
-              Begin Your Sadhana
-            </button>
-          </div>
+        {/* ================= CTA ================= */}
+        <div className="cta-box text-center">
+          <h3>Start Shopping with Purpose</h3>
+          <p>
+            Discover meaningful products that support a balanced lifestyle.
+          </p>
+          <button className="cta-btn">Shop Now</button>
+        </div>
 
-          <a href="#top" className="scroll-to-top-btn animate__bounceInRight">
-            <i className="fas fa-arrow-up"></i>
-          </a>
-        </main>
+        {/* Scroll to top */}
+        <a href="#top" className="scroll-to-top-btn">↑</a>
       </div>
     </div>
   );

@@ -332,7 +332,7 @@ function PersonalCare() {
             </div>
           )}
 
-          {!hasMore && <p className="text-muted mt-4">🎉 You've reached the end!</p>}
+          {!hasMore && <p className="text-muted mt-4">refresh the website</p>}
         </>
       ) : (
         <Alert variant="warning" className="p-4">

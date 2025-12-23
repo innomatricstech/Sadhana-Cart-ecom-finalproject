@@ -1,28 +1,98 @@
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  limit,
-  orderBy
-} from "firebase/firestore";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import "./Navbar.css";
 
-function SearchBar() {
+import { Navbar, Nav, Container, Button, Modal, Form, Badge } from "react-bootstrap";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Redux & Components
+import AuthPage from "../pages/LoginPage";
+import SecondHeader from "./searchBar/SecondHeader";
+
+import "./Navbar.css";
+import logo from "../Images/Sadhanacart1.png";
+
+// Firebase
+import { db } from "../firebase";
+import { collection, query, getDocs, orderBy, limit, where } from "firebase/firestore";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+
+const auth = getAuth();
+
+/* ---------------- MODALS ---------------- */
+const LoginConfirmationModal = ({ show, onClose, userName }) => {
+  return (
+    <Modal show={show} onHide={onClose} centered className="login-success-modal">
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.3, type: "spring", damping: 15 }}
+          >
+            <Modal.Body className="p-4 text-center py-5">
+              <motion.div
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                className="text-success mb-4"
+              >
+                <i className="fas fa-check-circle fa-3x"></i>
+              </motion.div>
+              <h4 className="mb-2 fw-bolder text-dark">Welcome Back!</h4>
+              <p className="text-muted mt-3 mb-0">
+                Hello, <span className="fw-bold text-primary">{userName}</span>!
+                You are now signed in.
+              </p>
+            </Modal.Body>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
+};
+
+const LogoutConfirmationModal = ({ show, onClose }) => {
+  return (
+    <Modal show={show} onHide={onClose} centered className="logout-success-modal">
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.3, type: "spring", damping: 15 }}
+          >
+            <Modal.Body className="p-4 text-center py-5">
+              <motion.div
+                initial={{ rotate: -180, scale: 0.5 }}
+                animate={{ rotate: 0, scale: 1 }}
+                className="text-danger mb-4"
+              >
+                <i className="fas fa-sign-out-alt fa-3x"></i>
+              </motion.div>
+              <h4 className="mb-2 fw-bold text-danger">Logout Successful!</h4>
+              <p className="text-muted mt-3 mb-0">You've been securely logged out.</p>
+            </Modal.Body>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
+};
+
+/* ---------------- SEARCH BAR COMPONENT ---------------- */
+const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [trending, setTrending] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-
+  
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  /* ---------------- UTIL: HIGHLIGHT TEXT ---------------- */
   const highlightText = (text, query) => {
     if (!query) return text;
     const regex = new RegExp(`(${query})`, "gi");
@@ -37,7 +107,6 @@ function SearchBar() {
     );
   };
 
-  /* ---------------- TRENDING PRODUCTS ---------------- */
   useEffect(() => {
     const fetchTrending = async () => {
       try {
@@ -46,7 +115,6 @@ function SearchBar() {
           orderBy("createdAt", "desc"),
           limit(5)
         );
-
         const snap = await getDocs(q);
         const data = snap.docs.map(doc => ({
           id: doc.id,
@@ -59,13 +127,10 @@ function SearchBar() {
     };
 
     fetchTrending();
-
-    // Load recent searches
     const stored = JSON.parse(localStorage.getItem("recentSearches")) || [];
     setRecentSearches(stored);
   }, []);
 
-  /* ---------------- SEARCH PRODUCTS ---------------- */
   const fetchSearchData = async (value) => {
     if (!value.trim()) {
       setSuggestions([]);
@@ -77,7 +142,6 @@ function SearchBar() {
 
     try {
       const productsRef = collection(db, "products");
-
       const q = query(
         productsRef,
         where("searchkeywords", "array-contains", keyword),
@@ -90,13 +154,13 @@ function SearchBar() {
         ...doc.data()
       }));
 
-      // Fallback partial match
       if (results.length === 0) {
         const allSnap = await getDocs(query(productsRef, limit(20)));
         results = allSnap.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .filter(p =>
-            p.pattern?.toLowerCase().includes(keyword)
+            p.pattern?.toLowerCase().includes(keyword) ||
+            p.name?.toLowerCase().includes(keyword)
           );
       }
 
@@ -108,16 +172,13 @@ function SearchBar() {
     }
   };
 
-  /* ---------------- DEBOUNCE ---------------- */
   useEffect(() => {
     const delay = setTimeout(() => {
       if (searchTerm) fetchSearchData(searchTerm);
     }, 300);
-
     return () => clearTimeout(delay);
   }, [searchTerm]);
 
-  /* ---------------- CLICK OUTSIDE ---------------- */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -128,18 +189,21 @@ function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ---------------- HANDLERS ---------------- */
   const saveRecentSearch = (term) => {
     if (!term.trim()) return;
-    let updated = [term, ...recentSearches.filter(t => t !== term)];
+    
+    let updated = [term, ...recentSearches.filter(t => 
+      t.toLowerCase() !== term.toLowerCase()
+    )];
     updated = updated.slice(0, 5);
     setRecentSearches(updated);
     localStorage.setItem("recentSearches", JSON.stringify(updated));
   };
 
   const handleSelect = (product) => {
-    saveRecentSearch(product.pattern);
-    setSearchTerm(product.pattern || "");
+    const term = product.pattern || product.name || "";
+    saveRecentSearch(term);
+    setSearchTerm(term);
     setShowDropdown(false);
     navigate(`/product/${product.id}`);
   };
@@ -151,96 +215,94 @@ function SearchBar() {
     navigate(`/search-results?q=${encodeURIComponent(searchTerm)}`);
   };
 
-  /* ---------------- DELETE RECENT SEARCH ---------------- */
+  /* ---------------- DELETE SINGLE RECENT SEARCH ---------------- */
   const deleteRecentSearch = (term, e) => {
-    e.stopPropagation(); // Prevent triggering the parent onClick
-    const updated = recentSearches.filter(t => t !== term);
+    e.stopPropagation();
+    const updated = recentSearches.filter(t => 
+      t.toLowerCase() !== term.toLowerCase()
+    );
     setRecentSearches(updated);
     localStorage.setItem("recentSearches", JSON.stringify(updated));
   };
 
   /* ---------------- CLEAR ALL RECENT SEARCHES ---------------- */
-  const clearAllRecentSearches = (e) => {
-    e.stopPropagation();
+  const clearAllRecentSearches = () => {
     setRecentSearches([]);
-    localStorage.setItem("recentSearches", JSON.stringify([]));
+    localStorage.removeItem("recentSearches");
+  };
+
+  /* ---------------- RECENT SEARCH CLICK HANDLER ---------------- */
+  const handleRecentSearchClick = (term) => {
+    setSearchTerm(term);
+    fetchSearchData(term);
+    setShowDropdown(true);
   };
 
   return (
-    <div
-      className="search-bar-container-desktop position-relative w-100"
-      ref={dropdownRef}
-    >
+    <div className="position-relative w-100" ref={dropdownRef}>
       <div className="input-group">
         <input
           type="text"
-          className="form-control search-input-desktop"
+          className="form-control search-input-desktop border-end-0 rounded-start-pill"
           placeholder="What are you looking for?"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setShowDropdown(true)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
-
-        <button
-          className="btn btn-warning px-4"
+        <Button 
+          variant="warning" 
+          className="rounded-end-pill px-4"
           onClick={handleSubmit}
         >
-          <i className="fa fa-search"></i>
-        </button>
+          <i className="fas fa-search"></i>
+        </Button>
       </div>
 
-      {/* ---------------- DROPDOWN ---------------- */}
       {showDropdown && (
-        <div className="suggestions-dropdown p-2">
-
-          {/* LOADING SKELETON */}
-          {loading && (
-            <div className="skeleton-wrapper">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="skeleton-item"></div>
-              ))}
+        <motion.div 
+          className="suggestions-dropdown shadow-lg border-0 rounded-3 mt-1"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+        >
+          {loading ? (
+            <div className="p-3 text-center">
+              <div className="spinner-border spinner-border-sm text-warning"></div>
+              <span className="ms-2">Searching...</span>
             </div>
-          )}
-
-          {!loading && searchTerm.length > 0 ? (
+          ) : searchTerm.length > 0 ? (
             suggestions.length > 0 ? (
               suggestions.map((p) => (
                 <div
                   key={p.id}
-                  className="suggestion-item d-flex align-items-center gap-3"
+                  className="suggestion-item p-3 border-bottom"
                   onClick={() => handleSelect(p)}
                 >
-                  {/* IMAGE */}
-                  <img
-                    src={p.image || p.thumbnail || p.images?.[0]}
-                    alt={p.pattern}
-                    className="search-suggestion-img"
-                  />
-
-                  {/* INFO */}
-                  <div className="flex-grow-1">
-                    <div className="fw-bold text-dark">
-                      {highlightText(p.pattern, searchTerm)}
-                    </div>
-
-                    <div className="small text-muted">
-                      {p.category}
-                    </div>
-
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="text-success fw-bold">
-                        ₹{p.offerprice || p.price}
-                      </span>
-
-                      {p.mrp && p.offerprice && (
-                        <span className="discount-badge">
-                          {Math.round(
-                            ((p.mrp - p.offerprice) / p.mrp) * 100
-                          )}
-                          % OFF
+                  <div className="d-flex align-items-center gap-3">
+                    <img
+                      src={p.image || p.thumbnail || p.images?.[0]}
+                      alt={p.pattern || p.name}
+                      className="search-suggestion-img"
+                      onError={(e) => e.target.src = "https://via.placeholder.com/40"}
+                    />
+                    <div className="flex-grow-1">
+                      <div className="fw-bold text-dark">
+                        {highlightText(p.pattern || p.name, searchTerm)}
+                      </div>
+                      <div className="small text-muted">
+                        {p.category} • {p.subcategory || ""}
+                      </div>
+                      <div className="d-flex align-items-center gap-2 mt-1">
+                        <span className="text-success fw-bold">
+                          ₹{p.offerprice || p.price || "N/A"}
                         </span>
-                      )}
+                        {p.mrp && p.offerprice && (
+                          <Badge bg="danger" className="ms-2">
+                            {Math.round(((p.mrp - p.offerprice) / p.mrp) * 100)}% OFF
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -252,67 +314,359 @@ function SearchBar() {
             )
           ) : (
             <>
-              {/* RECENT SEARCHES WITH HEADER */}
               {recentSearches.length > 0 && (
                 <>
-                  <div className="d-flex justify-content-between align-items-center px-3 py-2">
-                    <div className="text-muted small fw-bold">
-                      RECENT SEARCHES
-                    </div>
-                    <button
-                      className="btn btn-sm btn-outline-secondary"
+                  <div className="px-3 py-2 text-muted small fw-bold bg-light d-flex justify-content-between align-items-center">
+                    <span>
+                      <i className="fas fa-history me-2"></i> RECENT SEARCHES
+                    </span>
+                    <button 
+                      className="btn btn-sm btn-link text-danger p-0"
                       onClick={clearAllRecentSearches}
-                      style={{ fontSize: "0.7rem", padding: "2px 8px" }}
                     >
-                      Clear All
+                      Clear all
                     </button>
                   </div>
                   {recentSearches.map((term, i) => (
                     <div
                       key={i}
-                      className="suggestion-item d-flex justify-content-between align-items-center"
-                      onClick={() => {
-                        setSearchTerm(term);
-                        fetchSearchData(term);
-                      }}
+                      className="suggestion-item px-3 py-2 d-flex justify-content-between align-items-center"
+                      onClick={() => handleRecentSearchClick(term)}
                     >
                       <div className="d-flex align-items-center">
-                        <i className="fa fa-history me-2 text-muted"></i>
+                        <i className="fas fa-clock me-2 text-muted"></i> 
                         <span>{term}</span>
                       </div>
-                      <button
-                        className="btn btn-sm btn-link text-muted p-0"
+                      <button 
+                        className="btn btn-sm btn-link text-danger p-0"
                         onClick={(e) => deleteRecentSearch(term, e)}
-                        style={{ fontSize: "0.8rem" }}
-                        title="Delete this search"
                       >
-                        <i className="fa fa-times"></i>
+                        <i className="fas fa-times"></i>
                       </button>
                     </div>
                   ))}
                 </>
               )}
-
-              {/* TRENDING */}
-              <div className="px-3 py-2 text-muted small fw-bold">
-                TRENDING SEARCHES
+              
+              <div className="px-3 py-2 text-muted small fw-bold bg-light">
+                <i className="fas fa-fire me-2 text-warning"></i> TRENDING NOW
               </div>
               {trending.map((p) => (
                 <div
                   key={p.id}
-                  className="suggestion-item d-flex align-items-center"
+                  className="suggestion-item px-3 py-2"
                   onClick={() => handleSelect(p)}
                 >
-                  <i className="fa fa-line-chart me-3 text-orange"></i>
-                  <span>{p.pattern}</span>
+                  <i className="fas fa-chart-line me-2 text-primary"></i>
+                  {p.pattern || p.name}
                 </div>
               ))}
             </>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );
-}
+};
 
-export default SearchBar;
+/* ---------------- MAIN HEADER COMPONENT ---------------- */
+export default function Header() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Redux State
+  const { location } = useSelector((state) => state.header);
+  const cartItems = useSelector((state) => state.cart?.items || []);
+  const orders = useSelector((state) => state.orders?.items || []);
+  
+  const cartCount = cartItems.length;
+  const orderCount = orders.length;
+
+  // Local State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggedInUserName, setLoggedInUserName] = useState("");
+  const [mobileSearchActive, setMobileSearchActive] = useState(false);
+
+  // Auth State Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  /* ---------------- HANDLERS ---------------- */
+  const handleLoginSuccess = (user) => {
+    setShowAuthModal(false);
+    const nameToDisplay = user.displayName || user.email.split('@')[0];
+    setLoggedInUserName(nameToDisplay);
+    setShowLoginModal(true);
+    setTimeout(() => setShowLoginModal(false), 2000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setShowLogoutModal(true);
+      setTimeout(() => {
+        setShowLogoutModal(false);
+        navigate("/");
+      }, 2000);
+    } catch (error) {
+      console.error("Logout Error:", error);
+      alert("Failed to log out. Please try again.");
+    }
+  };
+
+  const handleSellerClick = () => {
+    window.open("https://sadhana-cart-seller-panel.vercel.app/seller/login", "_blank");
+  };
+
+  const goToCart = () => navigate("/cart");
+  const goToOrders = () => navigate("/orders");
+
+  return (
+    <>
+      {/* =================== MAIN NAVBAR =================== */}
+      <Navbar expand="lg" className="navbar-custom shadow-sm sticky-top bg-white" variant="light">
+        <Container fluid className="px-3 px-lg-4">
+          
+          {/* MOBILE VIEW */}
+          {!mobileSearchActive && (
+            <>
+              {/* LOGO */}
+              <Navbar.Brand href="/" className="d-flex align-items-center me-auto">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="d-flex align-items-center"
+                >
+                  <img 
+                    src={logo} 
+                    alt="Sadhana Cart" 
+                    className="logo-img"
+                    style={{ width: "50px", height: "50px", objectFit: "contain" }}
+                  />
+                  <div className="ms-2">
+                    <div className="brand-text" style={{ 
+                      color: "goldenrod", 
+                      fontWeight: "800", 
+                      fontSize: "1.4rem",
+                      lineHeight: "1.1"
+                    }}>
+                      Sadhana<span style={{ color: "navy" }}>Cart</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </Navbar.Brand>
+
+              {/* MOBILE ACTIONS */}
+              <div className="d-flex d-lg-none align-items-center gap-2">
+                {/* Search Toggle */}
+                <Button 
+                  variant="outline-dark" 
+                  size="sm" 
+                  className="border-0"
+                  onClick={() => setMobileSearchActive(true)}
+                >
+                  <i className="fas fa-search"></i>
+                </Button>
+
+
+                {/* Orders with Badge */}
+                <Button 
+                  variant="outline-dark" 
+                  size="sm" 
+                  className="border-0 position-relative"
+                  onClick={goToOrders}
+                >
+                  <i className="fas fa-box"></i>
+                  {orderCount > 0 && (
+                    <Badge 
+                      bg="info" 
+                      className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                      style={{ fontSize: "0.6rem", padding: "0.2rem 0.4rem" }}
+                    >
+                      {orderCount}
+                    </Badge>
+                  )}
+                </Button>
+
+                {/* Cart with Badge */}
+                <Button 
+                  size="sm" 
+                  className="position-relative rounded-pill px-3"
+                  onClick={goToCart}
+                >
+                  <i className="fas fa-shopping-cart"></i>
+                  {cartCount > 0 && (
+                    <Badge 
+                      bg="danger" 
+                      className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                      style={{ fontSize: "0.6rem", padding: "0.2rem 0.4rem" }}
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* MOBILE SEARCH VIEW */}
+          {mobileSearchActive && (
+            <div className="d-flex d-lg-none align-items-center w-100">
+              <Button 
+                variant="link" 
+                className="me-2 text-dark"
+                onClick={() => setMobileSearchActive(false)}
+              >
+                <i className="fas fa-arrow-left"></i>
+              </Button>
+              <SearchBar />
+            </div>
+          )}
+
+          {/* DESKTOP VIEW */}
+          <Navbar.Collapse id="navbar-collapse" className="d-none d-lg-flex">
+
+            {/* Search Bar */}
+            <Nav className="flex-grow-1 mx-4" style={{ maxWidth: "600px" }}>
+              <SearchBar />
+            </Nav>
+
+            {/* Right Actions */}
+            <Nav className="align-items-center gap-4">
+              {/* Seller */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="d-flex flex-column align-items-center cursor-pointer"
+                onClick={handleSellerClick}
+              >
+                <i className="fas fa-store text-primary mb-1"></i>
+                <small className="text-dark fw-semibold">Seller</small>
+              </motion.div>
+
+              {/* Orders with Badge */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="d-flex flex-column align-items-center cursor-pointer position-relative"
+                onClick={goToOrders}
+              >
+                <i className="fas fa-box text-success mb-1"></i>
+                <small className="text-dark fw-semibold">Orders</small>
+                {orderCount > 0 && (
+                  <Badge 
+                    bg="info" 
+                    className="position-absolute top-0 end-0 translate-middle rounded-pill"
+                    style={{ fontSize: "0.6rem", padding: "0.2rem 0.4rem" }}
+                  >
+                    {orderCount}
+                  </Badge>
+                )}
+              </motion.div>
+
+              {/* Auth */}
+              {currentUser ? (
+                <motion.div 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="d-flex align-items-center gap-2"
+                >
+                  <div className="text-end">
+                    <div className="fw-bold text-dark small">
+                      Hi, {currentUser.displayName || currentUser.email.split('@')[0]}
+                    </div>
+                    <Button 
+                      variant="danger" 
+                      size="sm" 
+                      onClick={handleLogout}
+                      className="border-1"
+                    >
+                      <i className="fas fa-sign-out-alt me-1"></i>
+                      Logout
+                    </Button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="outline-dark" 
+                    className="px-4"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    <i className="fas fa-user me-2"></i>
+                    Sign In
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Cart with Badge */}
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  variant="warning" 
+                  className="position-relative px-4"
+                  onClick={goToCart}
+                >
+                  <i className="fas fa-shopping-cart me-2"></i>
+                  Cart
+                  {cartCount > 0 && (
+                    <Badge 
+                      bg="danger" 
+                      className="position-absolute top-0 start-100 translate-middle rounded-pill"
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              </motion.div>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+
+      {/* SECOND HEADER */}
+      <SecondHeader />
+
+      {/* MODALS */}
+      <AnimatePresence>
+        {/* Auth Modal */}
+        <Modal 
+          show={showAuthModal} 
+          onHide={() => setShowAuthModal(false)} 
+          centered
+          size="lg"
+        >
+          <Modal.Body className="p-0">
+            <AuthPage 
+              onClose={() => setShowAuthModal(false)} 
+              onLoginSuccess={handleLoginSuccess} 
+            />
+          </Modal.Body>
+        </Modal>
+
+        {/* Login Success Modal */}
+        {showLoginModal && (
+          <LoginConfirmationModal 
+            show={showLoginModal} 
+            onClose={() => setShowLoginModal(false)} 
+            userName={loggedInUserName} 
+          />
+        )}
+
+        {/* Logout Success Modal */}
+        {showLogoutModal && (
+          <LogoutConfirmationModal 
+            show={showLogoutModal} 
+            onClose={() => setShowLogoutModal(false)} 
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
