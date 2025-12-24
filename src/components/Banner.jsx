@@ -1,163 +1,116 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase"; 
+import { db } from "../firebase";
 import "./Banner.css";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-function Banner() {
+const Banner = () => {
   const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const fetchBanners = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "posters"));
-        const bannerList = [];
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.status === 'active') { 
-            bannerList.push({
-              id: doc.id,
-              url: data.image,
-              title: data.title,
-              description: data.description 
-            });
-          }
-        });
-
-        setBanners(bannerList);
-      } catch (error) {
-        console.error("Error fetching banners:", error); 
-      } finally {
-        setLoading(false);
-      }
+      const snap = await getDocs(collection(db, "posters"));
+      const list = [];
+      snap.forEach((doc) => {
+        const d = doc.data();
+        if (d.status === "active") {
+          list.push({ id: doc.id, image: d.image });
+        }
+      });
+      setBanners(list.slice(0, 5));
     };
-
     fetchBanners();
   }, []);
 
-  // Auto slide effect
-  useEffect(() => {
-    if (banners.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => 
-        prevIndex === banners.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 4000);
-
-    return () => clearInterval(interval);
+  const nextSlide = useCallback(() => {
+    setIndex((prev) => (prev + 1) % banners.length);
+    setProgress(0);
   }, [banners.length]);
 
-  const handlePrev = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
-    );
+  const prevSlide = useCallback(() => {
+    setIndex((prev) => (prev - 1 + banners.length) % banners.length);
+    setProgress(0);
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          nextSlide();
+          return 0;
+        }
+        return prev + 0.7; // Speed of progress bar
+      });
+    }, 50);
+    return () => clearInterval(interval);
+  }, [banners.length, nextSlide]);
+
+  // Helper to get 3 images to show
+  const getVisibleIndices = () => {
+    const prev = (index - 1 + banners.length) % banners.length;
+    const curr = index;
+    const next = (index + 1) % banners.length;
+    return { prev, curr, next };
   };
 
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === banners.length - 1 ? 0 : prevIndex + 1
-    );
-  };
+  if (banners.length < 1) return <div className="banner-loader">Loading...</div>;
 
-  if (loading) {
-    return (
-      <div className="banner-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (banners.length === 0) {
-    return (
-      <div className="no-banners">
-        <div className="no-banners-icon">🖼️</div>
-        <p>No banners available</p>
-      </div>
-    );
-  }
+  const { prev, curr, next } = getVisibleIndices();
 
   return (
-    <div className="banner-container">
-      <div className="banner-carousel">
-        {/* Banner Images */}
-        <div className="banner-images">
-          {banners.map((banner, index) => (
-            <div
-              key={banner.id}
-              className={`banner-image-wrapper ${index === currentIndex ? 'active' : ''}`}
-            >
-              <img
-                src={banner.url}
-                alt={banner.title}
-                className="banner-img"
-                loading="lazy"
-              />
-              
-              {/* Gradient Overlay - Lighter for white background */}
-              <div className="gradient-overlay"></div>
-              
-              {/* Content */}
-              <div className="banner-content">
-                <div className="content-wrapper">
-                  <h2 className="banner-title">
-                    {banner.title}
-                  </h2>
-                  {banner.description && (
-                    <p className="banner-description">
-                      {banner.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Navigation Buttons */}
-        <button 
-          className="carousel-nav prev" 
-          onClick={handlePrev}
-          aria-label="Previous banner"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <button 
-          className="carousel-nav next" 
-          onClick={handleNext}
-          aria-label="Next banner"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-
-        {/* Indicators */}
-        <div className="carousel-indicators">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              className={`indicator ${index === currentIndex ? 'active' : ''}`}
-              onClick={() => setCurrentIndex(index)}
-              aria-label={`Go to banner ${index + 1}`}
-            />
-          ))}
-        </div>
-
-        {/* Progress Bar */}
-        <div className="progress-bar">
-          <div className="progress-fill" style={{
-            width: `${((currentIndex + 1) / banners.length) * 100}%`
-          }}></div>
-        </div>
+    <section className="banner-wrapper">
+      {/* Dynamic Background */}
+      <div className="banner-bg">
+        <img src={banners[curr]?.image} alt="bg" />
+        <div className="overlay"></div>
       </div>
-    </div>
+
+      <div className="banner-progress">
+        <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+      </div>
+
+      <div className="slides-container">
+        {banners.map((b, i) => {
+          let slideClass = "banner-slide";
+          if (i === curr) slideClass += " center";
+          else if (i === prev) slideClass += " left";
+          else if (i === next) slideClass += " right";
+          else slideClass += " hidden";
+
+          return (
+            <div key={b.id} className={slideClass}>
+              <img src={b.image} alt="Banner" />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="banner-nav">
+        <button onClick={prevSlide} className="nav-btn left">
+          <FaChevronLeft />
+        </button>
+        <button onClick={nextSlide} className="nav-btn right">
+          <FaChevronRight />
+        </button>
+      </div>
+
+      <div className="banner-dots">
+        {banners.map((_, i) => (
+          <span
+            key={i}
+            className={index === i ? "dot active" : "dot"}
+            onClick={() => {
+              setIndex(i);
+              setProgress(0);
+            }}
+          />
+        ))}
+      </div>
+    </section>
   );
-}
+};
 
 export default Banner;

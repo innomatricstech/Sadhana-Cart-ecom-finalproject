@@ -293,16 +293,6 @@ const SearchBar = () => {
                       <div className="small text-muted">
                         {p.category} • {p.subcategory || ""}
                       </div>
-                      <div className="d-flex align-items-center gap-2 mt-1">
-                        <span className="text-success fw-bold">
-                          ₹{p.offerprice || p.price || "N/A"}
-                        </span>
-                        {p.mrp && p.offerprice && (
-                          <Badge bg="danger" className="ms-2">
-                            {Math.round(((p.mrp - p.offerprice) / p.mrp) * 100)}% OFF
-                          </Badge>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
