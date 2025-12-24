@@ -8,18 +8,27 @@ const Banner = () => {
   const [banners, setBanners] = useState([]);
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBanners = async () => {
-      const snap = await getDocs(collection(db, "posters"));
-      const list = [];
-      snap.forEach((doc) => {
-        const d = doc.data();
-        if (d.status === "active") {
-          list.push({ id: doc.id, image: d.image });
-        }
-      });
-      setBanners(list.slice(0, 5));
+      try {
+        setLoading(true);
+        const snap = await getDocs(collection(db, "posters"));
+        const list = [];
+        snap.forEach((doc) => {
+          const d = doc.data();
+          if (d.status === "active") {
+            list.push({ id: doc.id, image: d.image });
+          }
+        });
+        setBanners(list.slice(0, 5));
+      } catch (error) {
+        console.error("Error fetching banners:", error);
+      } finally {
+        // Add slight delay for smooth transition
+        setTimeout(() => setLoading(false), 500);
+      }
     };
     fetchBanners();
   }, []);
@@ -35,7 +44,7 @@ const Banner = () => {
   }, [banners.length]);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (banners.length <= 1 || loading) return;
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -46,7 +55,7 @@ const Banner = () => {
       });
     }, 50);
     return () => clearInterval(interval);
-  }, [banners.length, nextSlide]);
+  }, [banners.length, nextSlide, loading]);
 
   // Helper to get 3 images to show
   const getVisibleIndices = () => {
@@ -56,9 +65,67 @@ const Banner = () => {
     return { prev, curr, next };
   };
 
-  if (banners.length < 1) return <div className="banner-loader">Loading...</div>;
-
   const { prev, curr, next } = getVisibleIndices();
+
+  if (loading) {
+    return (
+      <div className="banner-loader-wrapper">
+        {/* Animated Background */}
+        <div className="banner-loader-bg">
+          <div className="gradient-animation"></div>
+        </div>
+        
+        {/* Glassmorphism Container */}
+        <div className="banner-loader">
+          {/* Spinner */}
+          <div className="loader-spinner">
+            <div className="spinner-ring"></div>
+            <div className="spinner-ring"></div>
+            <div className="spinner-ring"></div>
+            <div className="spinner-center">
+              <div className="pulse-dot"></div>
+            </div>
+          </div>
+          
+          {/* Loading Text */}
+          <div className="loader-text" style={{textAlign : "center"}}>
+            <span className="loader-text-line" style={{color: "blueviolet"}}>Loading</span>
+            <div className="loader-dots">
+              <div className="dot-bounce"></div>
+              <div className="dot-bounce"></div>
+              <div className="dot-bounce"></div>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="loader-progress" style={{textAlign: "center"}}>
+            <div className="progress-track">
+              <div className="progress-fill"></div>
+            </div>
+            <div className="progress-text" style={{color: "forestgreen"}}>Preparing your experience</div>
+          </div>
+          
+          {/* Floating Elements */}
+          <div className="floating-shapes">
+            <div className="shape shape-1"></div>
+            <div className="shape shape-2"></div>
+            <div className="shape shape-3"></div>
+            <div className="shape shape-4"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (banners.length < 1) {
+    return (
+      <div className="banner-empty">
+        <div className="empty-icon">🎬</div>
+        <h3>No banners available</h3>
+        <p>Check back soon for amazing content!</p>
+      </div>
+    );
+  }
 
   return (
     <section className="banner-wrapper">
