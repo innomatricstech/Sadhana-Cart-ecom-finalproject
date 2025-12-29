@@ -20,6 +20,9 @@ import HomePersonalCareSection from "../components/category/HomePersonalCareSect
 import Cosmetics from "../components/category/Cosmetics";
 import Book from "../components/category/Book";
 import Electronics from "../components/category/Electronics";
+import HomeCosmeticsSection from "../components/category/HomeCosmeticsSection";
+import HomeElectronicsSection from "../components/category/HomeElectronicsSection";
+import HomeBookSection from "../components/category/HomeBookSection";
 
 
 function Home() {
@@ -48,7 +51,7 @@ function Home() {
       {/* ===== Cosmetics ===== */}
       <section className="category-section mb-5">
         <Container>
-          <Cosmetics />
+          <HomeCosmeticsSection />
         </Container>
       </section>
 
@@ -69,7 +72,7 @@ function Home() {
       {/* ===== Books ===== */}
       <section className="category-section mb-5">
         <Container>
-          <Book />
+          <HomeBookSection />
         </Container>
       </section>
 
@@ -111,7 +114,7 @@ function Home() {
       {/* ===== Electronics ===== */}
       <section className="category-section mb-5">
         <Container>
-          <Electronics />
+          <HomeElectronicsSection />
         </Container>
       </section>
 

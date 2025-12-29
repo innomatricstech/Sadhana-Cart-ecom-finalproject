@@ -1,18 +1,17 @@
+/* SecondHeader.css */
+
 /* 🔥 SadhanaCart Brand Colors */
 :root {
-    --sadhana-orange: #f4a11a;   /* Gold from logo */
-    --cart-blue: #0b1e6d;        /* Navbar background */
+    --sadhana-orange: #f4a11a;
+    --cart-blue: #0b1e6d;
     --cart-blue-dark: #08154d;
-
     --text-white: #ffffff;
     --text-dark: #333333;
-
     --max-content-width: 1400px;
     --padding-sides: 15px;
 }
 
 /* -------------------- SECOND HEADER WRAPPER -------------------- */
-
 .second-header-wrapper {
     width: 100%;
     background-color: var(--cart-blue);
@@ -27,22 +26,20 @@
     justify-content: flex-start;
     height: 40px;
     color: var(--text-white);
-
     max-width: var(--max-content-width);
     margin: 0 auto;
     padding: 0 var(--padding-sides);
     box-sizing: border-box;
-
     position: relative;
 }
 
 /* -------------------- MAIN MENU BAR -------------------- */
-
 .menu-left {
     display: flex;
     align-items: center;
     overflow-x: auto;
     flex-grow: 1;
+    position: relative;
 }
 
 .menu-left::-webkit-scrollbar {
@@ -58,6 +55,16 @@
     flex-wrap: nowrap;
 }
 
+/* Desktop Menu - Always visible on desktop */
+.desktop-menu {
+    display: flex !important;
+}
+
+/* Mobile Menu - Hidden on desktop */
+.mobile-menu {
+    display: none !important;
+}
+
 /* Menu Item */
 .menu-item {
     margin-right: 18px;
@@ -71,38 +78,53 @@
     font-size: 0.85rem;
     font-weight: 600;
     text-transform: uppercase;
-
-    /* 🔥 IMPORTANT: remove hover box */
     background: transparent;
 }
 
 /* Link Style */
 .menu-item .menu-link-custom {
-    color: var(--text-white);       /* Normal = WHITE */
+    color: var(--text-white);
     text-decoration: none;
     display: block;
     padding: 0;
     transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+/* Category Link - No underline */
+.category-link {
+    text-decoration: none !important;
+}
+
+/* Loading State */
+.menu-item.loading {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* -------------------- HOVER EFFECT -------------------- */
-/* ❌ NO background change */
 .menu-item:hover {
     background: transparent;
 }
 
-/* ✅ ONLY TEXT COLOR CHANGE */
 .menu-item:hover .menu-link-custom {
-    color: var(--sadhana-orange);   /* GOLD */
+    color: var(--sadhana-orange);
 }
 
-/* Active (current page) */
-.menu-item.active {
-    background: transparent;
-}
-
+/* Active Category */
 .menu-item.active .menu-link-custom {
     color: var(--sadhana-orange);
+    font-weight: 700;
 }
 
 /* ALL CATEGORIES (Desktop hide) */
@@ -110,21 +132,20 @@
     display: none;
 }
 
-.festival-offer {
-    display: none;
-}
-
 /* -------------------- MOBILE STYLES -------------------- */
-
 @media (max-width: 992px) {
-
     .second-header {
         justify-content: space-between;
         padding-left: 10px;
         padding-right: 10px;
     }
 
-    /* ALL CATEGORIES button */
+    /* Hide desktop menu on mobile */
+    .desktop-menu {
+        display: none !important;
+    }
+
+    /* Show mobile menu button */
     .menu-item.all {
         display: flex;
         align-items: center;
@@ -136,6 +157,7 @@
         margin-right: 10px;
         cursor: pointer;
         font-weight: 700;
+        white-space: nowrap;
     }
 
     .menu-icon {
@@ -143,14 +165,9 @@
         font-size: 1rem;
     }
 
-    /* Hide desktop menu */
-    .menu-list {
-        display: none;
-    }
-
-    /* Mobile Drawer */
-    .menu-list.active {
-        display: flex;
+    /* Mobile Dropdown Menu */
+    .mobile-menu.active {
+        display: flex !important;
         flex-direction: column;
         position: fixed;
         top: 0;
@@ -165,7 +182,7 @@
         box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
     }
 
-    .menu-list.active .menu-item {
+    .mobile-menu.active .menu-item {
         height: auto;
         width: 100%;
         font-size: 1rem;
@@ -176,21 +193,21 @@
         text-transform: none;
         font-weight: 500;
         background: transparent;
+        display: flex;
+        align-items: center;
     }
 
-    /* Mobile hover → text only */
-    .menu-list.active .menu-item:hover {
+    .mobile-menu.active .menu-item:hover {
         background: transparent;
     }
 
-    .menu-list.active .menu-item:hover .menu-link-custom {
+    .mobile-menu.active .menu-item:hover .menu-link-custom {
         color: var(--sadhana-orange);
     }
 
-    .menu-item-mobile-icon {
-        margin-right: 10px;
+    .mobile-menu.active .menu-item.active .menu-link-custom {
         color: var(--sadhana-orange);
-        font-size: 1.2rem;
+        font-weight: 700;
     }
 
     /* Close Button */
@@ -206,28 +223,4 @@
         padding: 5px;
         border-radius: 50%;
     }
-}
-/* ================= FINAL GOLD HOVER FIX ================= */
-
-/* Normal state */
-.menu-item .menu-link-custom {
-  color: #ffffff !important;
-}
-
-/* Hover – ONLY text gold, NO BOX */
-.menu-item:hover {
-  background: transparent !important;
-}
-
-.menu-item:hover .menu-link-custom {
-  color: #f4a11a !important;   /* 🔥 Sadhana GOLD */
-}
-
-/* Active page */
-.menu-item.active {
-  background: transparent !important;
-}
-
-.menu-item.active .menu-link-custom {
-  color: #f4a11a !important;
 }

@@ -1,94 +1,269 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Spinner, Card, Row, Col } from 'react-bootstrap';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore'; 
-import { db } from '../../firebase'; // Assuming correct path
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Container, Spinner, Row, Col, Card, Alert } from "react-bootstrap";
+import { db } from "../../firebase";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+  startAfter,
+} from "firebase/firestore";
+import { Link } from "react-router-dom";
 
+/* ------------------------------------------------ */
+/* 🌈 Extract Color */
+const extractColorFromDescription = (description) => {
+  if (!description || typeof description !== "string") return "N/A";
+  const match = description.match(/color:\s*([a-zA-Z]+)/i);
+  return match ? match[1] : "N/A";
+};
+
+/* ------------------------------------------------ */
+/* 🎨 Color Map */
+const getColorValue = (colorName) => {
+  const colorMap = {
+    red: "#dc3545",
+    blue: "#0d6efd",
+    green: "#198754",
+    yellow: "#ffc107",
+    black: "#212529",
+    white: "#ffffff",
+    purple: "#6f42c1",
+    brown: "#795548",
+    gold: "#ffd700",
+    grey: "#6c757d",
+  };
+  return colorMap[colorName?.toLowerCase()] || "#e9ecef";
+};
+
+/* ------------------------------------------------ */
+/* 📚 Product Card */
+const ProductCard = ({ product }) => {
+  const [hover, setHover] = useState(false);
+
+  const productColor =
+    product.color || extractColorFromDescription(product.description);
+
+  const borderColor = getColorValue(productColor);
+
+  return (
+    <Col>
+      <Link
+        to={`/product/${product.id}`}
+        style={{ textDecoration: "none", color: "inherit" }}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      >
+        <Card
+          className="h-100"
+          style={{
+            border: `3px solid ${borderColor}`,
+            borderRadius: "18px",
+            overflow: "hidden",
+            background: "#fff",
+            transform: hover ? "translateY(-8px) scale(1.03)" : "scale(1)",
+            boxShadow: hover
+              ? `0 12px 28px ${borderColor}40`
+              : `0 6px 14px ${borderColor}20`,
+            transition: "all 0.3s ease",
+          }}
+        >
+          {/* Image */}
+          <div
+            style={{
+              height: "240px",
+              background: "#f8f9fa",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src={
+                product.images ||
+                product.image ||
+                "https://via.placeholder.com/250x300?text=No+Image"
+              }
+              alt={product.name}
+              style={{
+                height: "100%",
+                width: "100%",
+                objectFit: "contain",
+                transform: hover ? "scale(1.1)" : "scale(1)",
+                transition: "transform 0.4s ease",
+              }}
+            />
+          </div>
+
+          {/* Content */}
+          <Card.Body className="text-center p-3">
+            <Card.Title className="fs-6 fw-semibold text-truncate">
+              {product.name || "Book"}
+            </Card.Title>
+
+            <p className="small text-secondary mb-1">
+              Author:{" "}
+              <strong style={{ color: borderColor }}>
+                {product.author || product.brand || "Unknown"}
+              </strong>
+            </p>
+
+            <div className="fw-bold fs-5 text-success">
+              ₹{product.price || "N/A"}
+            </div>
+          </Card.Body>
+        </Card>
+      </Link>
+    </Col>
+  );
+};
+
+/* ------------------------------------------------ */
+/* 📚 Book Page */
 function Book() {
-  // ✅ Using the same simplified structure as Electronics
-  const categoryName = "Book"; 
-  const fetchLimit = 100; // Limits the number of products fetched
+  const categoryName = "Books"; // ✅ FIXED HERE
+  const PAGE_SIZE = 8;
 
   const [products, setProducts] = useState([]);
+  const [lastVisible, setLastVisible] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
+  const observer = useRef();
+
+  /* Initial Fetch */
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitial = async () => {
       try {
-        const productsRef = collection(db, 'products');
+        setLoading(true);
+        setProducts([]);
+        setHasMore(true);
 
-        // Query products where the 'category' field equals "Book" and apply the limit
-        // This assumes your product documents have a 'category' field with the value "Book"
-        const productsQuery = query(
+        const productsRef = collection(db, "products");
+
+        const q = query(
           productsRef,
-          where('category', '==', categoryName),
-          limit(fetchLimit)
+          where("category", "==", categoryName),
+          orderBy("name"),
+          limit(PAGE_SIZE)
         );
-        
-        const productsSnapshot = await getDocs(productsQuery);
 
-        if (productsSnapshot.empty) {
-          console.warn(`No products found for category: ${categoryName}`);
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          setHasMore(false);
+          return;
         }
 
-        const fetchedProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setProducts(fetchedProducts);
+        setProducts(
+          snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
 
+        setLastVisible(snap.docs[snap.docs.length - 1]);
+        if (snap.docs.length < PAGE_SIZE) setHasMore(false);
       } catch (err) {
-        console.error(`Error fetching ${categoryName} data:`, err);
-        setError(`Failed to load ${categoryName} products. Please try again later.`);
+        console.error("Book fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []); // Runs once on mount
+    fetchInitial();
+  }, []);
 
-  if (loading) return (
-    <Container className="text-center my-5">
-      <Spinner animation="border" variant="primary" />
-      <p>Loading {categoryName} Products...</p>
-    </Container>
-  );
+  /* Load More */
+  const loadMore = useCallback(async () => {
+    if (!lastVisible || loadingMore || !hasMore) return;
 
-  if (error) return (
-    <Container className="text-center my-5 text-danger">
-      <p>Error: {error}</p>
-    </Container>
+    try {
+      setLoadingMore(true);
+
+      const q = query(
+        collection(db, "products"),
+        where("category", "==", categoryName),
+        orderBy("name"),
+        startAfter(lastVisible),
+        limit(PAGE_SIZE)
+      );
+
+      const snap = await getDocs(q);
+
+      const data = snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      if (data.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setProducts((prev) => [...prev, ...data]);
+      setLastVisible(snap.docs[snap.docs.length - 1]);
+
+      if (snap.docs.length < PAGE_SIZE) setHasMore(false);
+    } catch (err) {
+      console.error("Load more books error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [lastVisible, loadingMore, hasMore]);
+
+  /* Intersection Observer */
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading || loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) loadMore();
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, loadingMore, hasMore, loadMore]
   );
 
   return (
     <Container className="my-5 text-center">
-      {/* 📚 Updated emoji for Books */}
-      <h2 className="fw-bold text-dark mb-4">{categoryName} Collection 📚</h2>
+      <h2 className="fw-bold mb-3">📚 Books Collection</h2>
+      <p className="text-muted mb-5">
+        Discover knowledge, stories & inspiration 📖
+      </p>
 
-      {products.length > 0 ? (
-        <Row xs={1} md={2} lg={4} className="g-4">
-          {products.map(product => (
-            <Col key={product.id}>
-              <Card className="h-100 shadow-sm border-0">
-                <Card.Img 
-                  variant="top" 
-                  // Using 'image' here, assuming Book data might use a different key than Electronics ('images')
-                  src={product.image || 'https://via.placeholder.com/150'} 
-                  style={{ height: '150px', objectFit: 'cover' }} 
-                />
-                <Card.Body>
-                  <Card.Title className="fs-6 text-truncate">{product.name || 'Untitled Book'}</Card.Title>
-                  {/* Using success color for book prices */}
-                  <Card.Text className="text-success fw-bold">
-                    {product.price ? `₹${product.price}` : 'Price N/A'}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <div className="p-4 bg-primary bg-opacity-10 rounded">
-          <p className="text-primary fw-bold mb-0">No products found for the {categoryName} category yet.</p>
+      {loading ? (
+        <div className="my-5">
+          <Spinner animation="border" />
+          <p className="text-muted mt-3">Loading books...</p>
         </div>
+      ) : products.length > 0 ? (
+        <>
+          <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+            {products.map((product, index) => {
+              const isLast = index === products.length - 1;
+              return (
+                <div ref={isLast ? lastProductRef : null} key={product.id}>
+                  <ProductCard product={product} />
+                </div>
+              );
+            })}
+          </Row>
+
+          {loadingMore && (
+            <div className="text-center my-4">
+              <Spinner animation="grow" />
+            </div>
+          )}
+
+          {!hasMore && (
+            <p className="text-muted mt-4">No more books available</p>
+          )}
+        </>
+      ) : (
+        <Alert variant="warning">No books found</Alert>
       )}
     </Container>
   );

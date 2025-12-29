@@ -1,5 +1,22 @@
+// firebase.js
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  getDoc,
+  doc,
+  query, 
+  where,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  orderBy,
+  limit,
+  serverTimestamp
+} from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBtraD4VRw_kJsltygAqzKtcYdyfnLeHZk",
@@ -11,5 +28,34 @@ const firebaseConfig = {
   measurementId: "G-GQ40SLFB85"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+// Initialize Firestore
+const db = getFirestore(app);
+
+// Initialize Storage
+const storage = getStorage(app);
+
+// Initialize Authentication
+const auth = getAuth(app);
+
+// Export all Firebase services and functions
+export { 
+  db, 
+  storage,
+  auth,
+  // Firestore functions
+  collection, 
+  getDocs,
+  getDoc,
+  doc,
+  query, 
+  where,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  orderBy,
+  limit,
+  serverTimestamp
+};

@@ -1,11 +1,14 @@
+// App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+ 
 
 // ✅ Common Components
 import Header from "./components/Navbar";
+ // Add dynamic SecondHeader
 import Footer from "../src/features/footer/Footer";
 
 // ✅ Pages
@@ -14,6 +17,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import CustomerSupportCenter from "./pages/CustomerService";
 import AuthPage from "./pages/LoginPage";
 import CategoryPage from "./pages/CategoryPage";
+import CategoryProducts from "../src/components/searchBar/CategoryProducts"; // Add dynamic category products
 
 // ✅ Cart & Checkout
 import CartPage from "./components/cartPage/CartPage";
@@ -22,7 +26,7 @@ import CashOnDelivery from "./components/cartPage/CashOnDelivey";
 import OrderConformPage from "./components/cartPage/OrderConformPage";
 import ViewOrderDetails from "./components/cartPage/ViewOrderDetails"; 
 
-// ✅ Category Components
+// ✅ Category Components (Optional - keep for backward compatibility)
 import Fashion from "./components/category/Fashion";
 import Accessories from "./components/category/Accessories";
 import Cosmetics from "./components/category/Cosmetics";
@@ -54,10 +58,18 @@ const AdminDashboard = () => <div className="text-center p-5">Admin Dashboard Pa
 const AppContent = () => {
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith("/admin");
+    
+    // Hide headers on specific pages if needed
+    const hideHeaders = [
+        "/login", 
+        "/admin", 
+        "/admin/dashboard"
+    ].some(path => location.pathname === path);
 
     return (
         <>
-            {!isAdminRoute && <Header />}
+            {!isAdminRoute && !hideHeaders && <Header />}
+         
 
             <main>
                 <Routes>
@@ -75,12 +87,17 @@ const AppContent = () => {
                     <Route path="/orders" element={<ViewOrderDetails />} /> 
                     <Route path="/support" element={<CustomerSupportCenter />} />
 
-                    {/* 🔹 Product & Category Routes */}
+                    {/* 🔹 Dynamic Category Routes - NEW */}
+                    <Route path="/category/:categoryId" element={<CategoryProducts />} />
+                    
+                    {/* 🔹 Legacy Category Routes (for backward compatibility) */}
                     <Route path="/category" element={<CategoryPage />} />
                     <Route path="/category/:categoryName" element={<CategoryPage />} />
+                    
+                    {/* 🔹 Product Detail Route */}
                     <Route path="/product/:id" element={<ProductDetailPage />} />
 
-                    {/* 🔹 Individual Category Pages */}
+                    {/* 🔹 Individual Category Pages (Optional - keep if needed) */}
                     <Route path="/fashion" element={<Fashion />} />
                     <Route path="/accessories" element={<Accessories />} />
                     <Route path="/cosmetics" element={<Cosmetics />} />
@@ -104,6 +121,7 @@ const AppContent = () => {
 
                     {/* 🎯 New Contact Page Route */}
                     <Route path="/contact" element={<ContactForm />} /> 
+                    
 
                     {/* 🔹 404 Fallback */}
                     <Route
@@ -111,14 +129,14 @@ const AppContent = () => {
                         element={
                             <div className="text-center mt-5 p-5">
                                 <h2>404 - Page Not Found</h2>
-                                <p className="text-muted">The page you are looking for doesn’t exist.</p>
+                                <p className="text-muted">The page you are looking for doesn't exist.</p>
                             </div>
                         }
                     />
                 </Routes>
             </main>
 
-            {!isAdminRoute && <Footer />}
+            {!isAdminRoute && !hideHeaders && <Footer />}
         </>
     );
 };
