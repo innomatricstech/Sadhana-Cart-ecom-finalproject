@@ -437,7 +437,7 @@ export default function Header() {
   };
 
   const handleSellerClick = () => {
-    window.open("https://sadhana-cart-seller-panel.vercel.app/seller/login", "_blank");
+    window.open("https://sadhana-cart-seller-panel1.vercel.app/seller/login", "_blank");
   };
 
   const goToCart = () => navigate("/cart");
