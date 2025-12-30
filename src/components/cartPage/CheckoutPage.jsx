@@ -915,10 +915,6 @@ const CheckoutPage = () => {
                         {item.title || item.name || "Unnamed Product"}
                       </p>
 
-                      {/* 🆕 Display Seller ID */}
-                      <small className="d-block text-info fw-semibold">
-                        Seller ID: {sellerId}
-                      </small>
 
                       {item.color && (
                         <small className="d-block text-muted">
