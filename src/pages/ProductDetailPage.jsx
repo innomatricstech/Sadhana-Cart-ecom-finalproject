@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Container, Row, Col, Spinner, Alert, Card, Button, Form, InputGroup, Modal, Badge } from "react-bootstrap";
+import { Container, Row, Col, Spinner, Alert, Card, Button, Form, InputGroup, Modal, Badge, Accordion } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaStar, FaRegStar } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaTruck, FaFileContract, FaCalendarAlt, FaShieldAlt } from 'react-icons/fa';
 import { db } from "../firebase";
 import { doc, getDoc, collection, getDocs, query, where, limit, addDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -65,6 +65,13 @@ function ProductDetailPage() {
         loadingSellers: false
     });
 
+    // 🆕 Delivery & Terms State
+    const [deliveryTerms, setDeliveryTerms] = useState({
+        deliveryDate: "",
+        termsConditions: "",
+        loading: false
+    });
+
     // 🆕 Reset function for product-specific states
     const resetProductStates = useCallback(() => {
         setProduct(null);
@@ -83,6 +90,11 @@ function ProductDetailPage() {
             currentProductSeller: null,
             allSellers: [],
             loadingSellers: false
+        });
+        setDeliveryTerms({
+            deliveryDate: "",
+            termsConditions: "",
+            loading: false
         });
     }, []);
 
@@ -168,6 +180,43 @@ function ProductDetailPage() {
             borderRadius: '4px',
             fontSize: '0.8rem',
             fontWeight: '600'
+        },
+        // 🆕 Styles for Delivery & Terms sections
+        deliveryTermsCard: {
+            border: '1px solid #e0e0e0',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            overflow: 'hidden'
+        },
+        deliveryTermsHeader: {
+            backgroundColor: '#f8f9fa',
+            padding: '15px 20px',
+            borderBottom: '1px solid #e0e0e0'
+        },
+        deliveryTermsBody: {
+            padding: '20px'
+        },
+        deliveryTermsIcon: {
+            fontSize: '1.5rem',
+            marginRight: '10px',
+            verticalAlign: 'middle'
+        },
+        deliveryDateBadge: {
+            backgroundColor: '#28a745',
+            color: 'white',
+            padding: '5px 10px',
+            borderRadius: '20px',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            marginLeft: '10px'
+        },
+        termsList: {
+            paddingLeft: '20px',
+            marginBottom: '0'
+        },
+        termsListItem: {
+            marginBottom: '8px',
+            lineHeight: '1.5'
         }
     };
 
@@ -261,6 +310,37 @@ function ProductDetailPage() {
         }
     };
 
+    // 🆕 Function to fetch delivery and terms information
+    const fetchDeliveryTerms = async (productId) => {
+        try {
+            setDeliveryTerms(prev => ({ ...prev, loading: true }));
+            const productRef = doc(db, "products", productId);
+            const productSnap = await getDoc(productRef);
+
+            if (productSnap.exists()) {
+                const data = productSnap.data();
+                setDeliveryTerms({
+                    deliveryDate: data.deliveryDate || "",
+                    termsConditions: data.termsConditions || "",
+                    loading: false
+                });
+            } else {
+                setDeliveryTerms({
+                    deliveryDate: "",
+                    termsConditions: "",
+                    loading: false
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching delivery & terms:", error);
+            setDeliveryTerms({
+                deliveryDate: "",
+                termsConditions: "",
+                loading: false
+            });
+        }
+    };
+
     const fetchReviews = async (productId) => {
         const reviewsQuery = query(collection(db, "rating"), where("productId", "==", productId));
         try {
@@ -311,6 +391,9 @@ function ProductDetailPage() {
 
                 // 🆕 Fetch seller information after getting product data
                 await fetchSellerInfo(data);
+
+                // 🆕 Fetch delivery and terms information
+                await fetchDeliveryTerms(id);
 
                 await fetchReviews(id);
                 const fetchedVariants = Array.isArray(data.sizevariants) ? data.sizevariants : [];
@@ -620,6 +703,47 @@ function ProductDetailPage() {
         return list;
     }, [categoryProducts, sortBy, filterPrice]);
 
+    // 🆕 Helper function to format delivery date info
+    const formatDeliveryInfo = (deliveryDate) => {
+        if (!deliveryDate || deliveryDate.trim() === "") return null;
+
+        // Check if it's a number (days)
+        if (!isNaN(deliveryDate) && deliveryDate.trim() !== "") {
+            const days = parseInt(deliveryDate);
+            if (days === 1) {
+                return "Same day delivery";
+            } else if (days <= 3) {
+                return `Delivery within ${days} days`;
+            } else if (days <= 7) {
+                return `Delivery within ${days} business days`;
+            } else {
+                return `Delivery within ${days} days`;
+            }
+        }
+
+        // If it's text, return as is
+        return deliveryDate;
+    };
+
+    // 🆕 Helper function to parse terms conditions
+    const parseTermsConditions = (termsConditions) => {
+        if (!termsConditions || termsConditions.trim() === "") return [];
+
+        // Split by new lines or numbers
+        const lines = termsConditions.split(/\n|(?=\d+\.)/).filter(line => line.trim() !== "");
+
+        // If it's a single line without numbers, treat as single point
+        if (lines.length === 1 && !/\d+\./.test(termsConditions)) {
+            return [termsConditions];
+        }
+
+        return lines;
+    };
+
+    // 🆕 Check if delivery or terms info exists
+    const hasDeliveryInfo = deliveryTerms.deliveryDate && deliveryTerms.deliveryDate.trim() !== "";
+    const hasTermsInfo = deliveryTerms.termsConditions && deliveryTerms.termsConditions.trim() !== "";
+
     // --- Render Checks ---
     if (loading || !isAuthReady)
         return (
@@ -676,7 +800,20 @@ function ProductDetailPage() {
                         <h2 className="fw-bold">{product.name || product.title}</h2>
                         <p className="text-primary fw-semibold text-uppercase">{product.category}</p>
 
-                        {/* 🆕 Enhanced Seller Information Display */}
+                        {/* 🆕 Display Seller Information if available */}
+                        {sellerInfo.currentProductSeller && (
+                            <div className="mb-3">
+                                <span className="text-muted small me-2">Sold by:</span>
+                                <Badge bg="secondary" className="fw-normal">
+                                    {sellerInfo.currentProductSeller.name}
+                                </Badge>
+                                {sellerInfo.currentProductSeller.rating > 0 && (
+                                    <span className="ms-2 small">
+                                        <FaStar className="text-warning" size={12} /> {sellerInfo.currentProductSeller.rating.toFixed(1)}
+                                    </span>
+                                )}
+                            </div>
+                        )}
 
                         <div className="product-rating mb-3">
                             <span className="text-warning fw-bold me-2">
@@ -749,11 +886,25 @@ function ProductDetailPage() {
                             </InputGroup>
                         </div>
 
+                        {/* 🆕 Display Delivery Information from Firebase */}
                         <div className="mb-3">
-                            <i className="fas fa-truck text-success me-2 small"></i>
-                            <span className="text-success small">
-                                Delivery <b>2–5 Business Days</b>
-                            </span>
+                            {hasDeliveryInfo ? (
+                                <div className="d-flex align-items-center">
+                                    <FaTruck className="text-success me-2" />
+                                    <span className="text-success fw-semibold">
+                                        {formatDeliveryInfo(deliveryTerms.deliveryDate)}
+                                        <span className="delivery-date-badge ms-2">
+                                            <FaCalendarAlt className="me-1" />
+
+                                        </span>
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="d-flex align-items-center">
+                                    <FaTruck className="text-secondary me-2" />
+                                    <span className="text-muted">Standard delivery: 2–5 Business Days</span>
+                                </div>
+                            )}
                         </div>
 
                         <hr />
@@ -779,7 +930,119 @@ function ProductDetailPage() {
                 </Row>
             </Card>
 
-            {/* 🆕 Seller Details Section */}
+            {/* 🆕 Delivery & Terms Information Section */}
+            {(hasDeliveryInfo || hasTermsInfo) && (
+                <Card className="mb-5 border-0 shadow-sm">
+                    <Card.Body>
+                        <h3 className="fw-bold mb-4">
+                            <FaShieldAlt className="text-primary me-2" />
+                            Product Information & Policies
+                        </h3>
+
+                        <Row>
+                            {/* Delivery Information */}
+                            {hasDeliveryInfo && (
+                                <Col md={6} className="mb-4 mb-md-0">
+                                    <div className="border rounded p-3 h-100">
+                                        <div className="d-flex align-items-center mb-3">
+                                            <div className="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                                <FaTruck className="text-primary" size={20} />
+                                            </div>
+                                            <h5 className="mb-0 fw-bold">Delivery Information</h5>
+                                        </div>
+                                        <div className="ms-5">
+                                            <p className="mb-2">
+                                                <strong>Delivery Timeline:</strong>
+                                            </p>
+                                            <div className="alert alert-success py-2">
+                                                <FaCalendarAlt className="me-2" />
+                                                {deliveryTerms.deliveryDate.includes("day") || deliveryTerms.deliveryDate.includes("Day")
+                                                    ? deliveryTerms.deliveryDate
+                                                    : `Delivery within ${deliveryTerms.deliveryDate} days`}
+                                            </div>
+                                            <p className="text-muted small mb-0">
+                                                <FaTruck className="me-1" />
+                                                This information is provided by the seller
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Col>
+                            )}
+
+                            {/* Terms & Conditions */}
+                            {hasTermsInfo && (
+                                <Col md={6}>
+                                    <div className="border rounded p-3 h-100">
+                                        <div className="d-flex align-items-center mb-3">
+                                            <div className="bg-warning bg-opacity-10 p-2 rounded-circle me-3">
+                                                <FaFileContract className="text-warning" size={20} />
+                                            </div>
+                                            <h5 className="mb-0 fw-bold">Terms & Conditions</h5>
+                                        </div>
+                                        <div className="ms-5">
+                                            <p className="mb-2">
+                                                <strong>Product Policies:</strong>
+                                            </p>
+                                            <div className="terms-content" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                                                {parseTermsConditions(deliveryTerms.termsConditions).map((term, index) => (
+                                                    <div key={index} className="mb-2 d-flex">
+                                                        <span className="text-primary me-2">•</span>
+                                                        <span>{term.trim()}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="text-muted small mb-0 mt-2">
+                                                <FaShieldAlt className="me-1" />
+                                                Please review these terms before purchasing
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Col>
+                            )}
+                        </Row>
+
+                        {/* Accordion for mobile view */}
+                        <div className="d-md-none mt-3">
+                            <Accordion>
+                                {hasDeliveryInfo && (
+                                    <Accordion.Item eventKey="0">
+                                        <Accordion.Header>
+                                            <FaTruck className="text-primary me-2" />
+                                            Delivery Information
+                                        </Accordion.Header>
+                                        <Accordion.Body>
+                                            <div className="alert alert-success py-2">
+                                                <FaCalendarAlt className="me-2" />
+                                                {deliveryTerms.deliveryDate.includes("day") || deliveryTerms.deliveryDate.includes("Day")
+                                                    ? deliveryTerms.deliveryDate
+                                                    : `Delivery within ${deliveryTerms.deliveryDate} days`}
+                                            </div>
+                                        </Accordion.Body>
+                                    </Accordion.Item>
+                                )}
+                                {hasTermsInfo && (
+                                    <Accordion.Item eventKey="1">
+                                        <Accordion.Header>
+                                            <FaFileContract className="text-warning me-2" />
+                                            Terms & Conditions
+                                        </Accordion.Header>
+                                        <Accordion.Body>
+                                            <div className="terms-content" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                                                {parseTermsConditions(deliveryTerms.termsConditions).map((term, index) => (
+                                                    <div key={index} className="mb-2 d-flex">
+                                                        <span className="text-primary me-2">•</span>
+                                                        <span>{term.trim()}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Accordion.Body>
+                                    </Accordion.Item>
+                                )}
+                            </Accordion>
+                        </div>
+                    </Card.Body>
+                </Card>
+            )}
 
             {/* Similar Products */}
             <h3 className="mb-4 fw-bold">More from the {product.category} category</h3>
