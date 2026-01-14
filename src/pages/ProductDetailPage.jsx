@@ -803,10 +803,6 @@ function ProductDetailPage() {
                         {/* 🆕 Display Seller Information if available */}
                         {sellerInfo.currentProductSeller && (
                             <div className="mb-3">
-                                <span className="text-muted small me-2">Sold by:</span>
-                                <Badge bg="secondary" className="fw-normal">
-                                    {sellerInfo.currentProductSeller.name}
-                                </Badge>
                                 {sellerInfo.currentProductSeller.rating > 0 && (
                                     <span className="ms-2 small">
                                         <FaStar className="text-warning" size={12} /> {sellerInfo.currentProductSeller.rating.toFixed(1)}
